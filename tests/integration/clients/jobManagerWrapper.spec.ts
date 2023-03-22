@@ -1,8 +1,10 @@
 import jsLogger from '@map-colonies/js-logger';
 import { ICreateTaskBody, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { DependencyContainer } from 'tsyringe';
 import { JobManagerWrapper } from '../../../src/clients/jobManagerWrapper';
+import { getApp } from '../../../src/app';
 import { CreateJobBody, ITaskParameters } from '../../../src/common/interfaces';
-import { createJobParameters, createUuid } from '../../helpers/mockCreator';
+import { createJobParameters, createUuid, getBaseRegisterOptions } from '../../helpers/mockCreator';
 
 describe('jobManagerWrapper', () => {
   let jobManagerWrapper: JobManagerWrapper;
@@ -11,9 +13,19 @@ describe('jobManagerWrapper', () => {
     createJob: jest.fn(),
   };
 
+  let depContainer: DependencyContainer;
+
+  beforeAll(() => {
+    const { app, container } = getApp(getBaseRegisterOptions());
+    depContainer = container;
+    const registerOptions = getBaseRegisterOptions();
+    registerOptions.override.push({ token: SERVICES.APPLICATION, provider: { useValue: appConfigWithRetries } });
+  });
+  
   beforeAll(() => {
     jobManagerWrapper = new JobManagerWrapper(jsLogger({ enabled: false }));
   });
+
   afterEach(() => {
     jest.clearAllMocks();
   });

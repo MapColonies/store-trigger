@@ -1,11 +1,12 @@
 import { Application } from 'express';
-import { registerExternalValues, RegisterOptions } from './containerConfig';
+import { DependencyContainer } from 'tsyringe';
+import { RegisterOptions, registerExternalValues } from './containerConfig';
 import { ServerBuilder } from './serverBuilder';
 
-function getApp(registerOptions?: RegisterOptions): Application {
+function getApp(registerOptions?: RegisterOptions): { app: Application; container: DependencyContainer } {
   const container = registerExternalValues(registerOptions);
   const app = container.resolve(ServerBuilder).build();
-  return app;
+  return { app, container };
 }
 
 export { getApp };
