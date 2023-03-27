@@ -10,8 +10,9 @@ import { ingestionRouterFactory, INGESTION_ROUTER_SYMBOL } from './ingestion/rou
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { jobStatusRouterFactory, JOB_STATUS_ROUTER_SYMBOL } from './jobStatus/routes/jobStatusRouter';
 import { IConfigProvider, IIngestionConfig, INFSConfig, IS3Config } from './common/interfaces';
-import getProvider from './common/providers/getProvider';
 import { QueueFileHandler } from './handlers/queueFileHandler';
+import { S3Provider } from './common/providers/s3Provider';
+import { NFSProvider } from './common/providers/nfsProvider';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -42,14 +43,8 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: SERVICES.NFS, provider: { useValue: fsConfig } },
     { token: SERVICES.S3, provider: { useValue: s3Config } },
     { token: SERVICES.QUEUE_FILE_HANDLER, provider: { useClass: QueueFileHandler } },
-    {
-      token: SERVICES.CONFIG_PROVIDER,
-      provider: {
-        useFactory: (): IConfigProvider => {
-          return getProvider(ingestionConfig.configProvider);
-        },
-      },
-    },
+    { token: SERVICES.S3_PROVIDER, provider: { useClass: S3Provider } },
+    { token: SERVICES.NFS_PROVIDER, provider: { useClass: NFSProvider } },
     {
       token: 'onSignal',
       provider: {
