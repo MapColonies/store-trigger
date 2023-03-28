@@ -4,10 +4,11 @@ import { randBetweenDate, randNumber, randPastDate, randUuid, randWord } from '@
 import { Polygon } from 'geojson';
 import { Layer3DMetadata, ProductType, RecordStatus, RecordType } from '@map-colonies/mc-model-types';
 import jsLogger from '@map-colonies/js-logger';
-import { OperationStatus } from '@map-colonies/mc-priority-queue';
+import { JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { CreateJobBody, IJobParameters, Payload } from '../../src/common/interfaces';
 import { RegisterOptions } from '../../src/containerConfig';
 import { SERVICES } from '../../src/common/constants';
+import { QueueFileHandler } from '../../src/handlers/queueFileHandler';
 
 const classificationHelper = new RandExp('^[0-9]$').gen();
 const listOfRandomWords = ['avi', 'אבי', 'lalalalala', 'וןםפ'];
@@ -137,3 +138,16 @@ export const createJobParameters = (): IJobParameters => {
     tilesetFilename: 'tileset.json'
   }
 }
+
+export const loggerMock = {
+  info: jest.fn()
+};
+
+export const jobsManagerMock = {
+  createJob: jest.fn(),
+} as never as JobManagerClient;
+
+export const queueFileHandlerMock = {
+  readline: jest.fn(),
+  writeFileNameToQueueFile: jest.fn(),
+} as never as QueueFileHandler;
