@@ -1,18 +1,17 @@
-import config from 'config';
-import { logMethod } from '@map-colonies/telemetry';
-import { trace } from '@opentelemetry/api';
-import { DependencyContainer } from 'tsyringe/dist/typings/types';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
-import { Metrics } from '@map-colonies/telemetry';
+import { logMethod, Metrics } from '@map-colonies/telemetry';
+import { trace } from '@opentelemetry/api';
+import config from 'config';
+import { DependencyContainer } from 'tsyringe/dist/typings/types';
 import { SERVICES, SERVICE_NAME } from './common/constants';
-import { tracing } from './common/tracing';
-import { ingestionRouterFactory, INGESTION_ROUTER_SYMBOL } from './ingestion/routes/ingestionRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
-import { jobStatusRouterFactory, JOB_STATUS_ROUTER_SYMBOL } from './jobStatus/routes/jobStatusRouter';
-import { IConfigProvider, IIngestionConfig, INFSConfig, IS3Config } from './common/interfaces';
-import { QueueFileHandler } from './handlers/queueFileHandler';
-import { S3Provider } from './common/providers/s3Provider';
+import { INFSConfig, IS3Config } from './common/interfaces';
 import { NFSProvider } from './common/providers/nfsProvider';
+import { S3Provider } from './common/providers/s3Provider';
+import { tracing } from './common/tracing';
+import { QueueFileHandler } from './handlers/queueFileHandler';
+import { ingestionRouterFactory, INGESTION_ROUTER_SYMBOL } from './ingestion/routes/ingestionRouter';
+import { jobStatusRouterFactory, JOB_STATUS_ROUTER_SYMBOL } from './jobStatus/routes/jobStatusRouter';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -23,7 +22,6 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
   const fsConfig = config.get<INFSConfig>('NFS');
   const s3Config = config.get<IS3Config>('S3');
-  const ingestionConfig = config.get<IIngestionConfig>('ingestion');
   // @ts-expect-error the signature is wrong
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, hooks: { logMethod } });
 
