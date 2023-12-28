@@ -2,11 +2,22 @@ import { Logger } from '@map-colonies/js-logger';
 import { ICreateTaskBody, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
 import { JOB_TYPE, SERVICES } from '../../common/constants';
-import { CreateJobBody, IConfig, IngestionResponse, JobParameters, Provider, TaskParameters, Payload } from '../../common/interfaces';
+import {
+  CreateJobBody,
+  IConfig,
+  JobsResponse,
+  CreateJobParameters,
+  Provider,
+  TaskParameters,
+  DeletePayload,
+  CreatePayload,
+  DeleteJobBody,
+  DeleteJobParameters,
+} from '../../common/interfaces';
 import { QueueFileHandler } from '../../handlers/queueFileHandler';
 
 @injectable()
-export class IngestionManager {
+export class JobsManager {
   private readonly providerName: string;
   private readonly taskType: string;
   private readonly batchSize: number;
@@ -23,13 +34,14 @@ export class IngestionManager {
     this.batchSize = config.get<number>('jobManager.task.batches');
     this.taskType = config.get<string>('jobManager.task.type');
     this.maxConcurrency = this.config.get<number>('maxConcurrency');
+    const jobType = this.config.get<string>('jobManager')
   }
 
-  public async createJob(payload: Payload): Promise<IngestionResponse> {
+  public async createPostJob(payload: CreatePayload): Promise<JobsResponse> {
     const job: CreateJobBody = {
       resourceId: payload.modelId,
       version: '1',
-      type: JOB_TYPE,
+      type: ,
       parameters: {
         metadata: payload.metadata,
         modelId: payload.modelId,
@@ -45,9 +57,9 @@ export class IngestionManager {
       domain: '3D',
     };
 
-    const jobResponse = await this.jobManagerClient.createJob<JobParameters, TaskParameters>(job);
+    const jobResponse = await this.jobManagerClient.createJob<CreateJobParameters, TaskParameters>(job);
 
-    const res: IngestionResponse = {
+    const res: JobsResponse = {
       jobID: jobResponse.id,
       status: OperationStatus.PENDING,
     };
@@ -55,7 +67,32 @@ export class IngestionManager {
     return res;
   }
 
-  public async createModel(payload: Payload, jobId: string): Promise<void> {
+  public async createDeleteJob(payload: DeletePayload): Promise<JobsResponse> {
+    const job: DeleteJobBody = {
+      resourceId: payload.modelId,
+      version: '1',
+      type: 'deleting',
+      parameters: {
+        modelId: payload.modelId,
+        pathToTileset: payload.pathToTileset,
+        filesCount: 0,
+      },
+      percentage: 0,
+      status: OperationStatus.PENDING,
+      domain: '3D',
+    };
+
+    const jobResponse = await this.jobManagerClient.createJob<DeleteJobParameters, TaskParameters>(job);
+
+    const res: JobsResponse = {
+      jobID: jobResponse.id,
+      status: OperationStatus.PENDING,
+    };
+
+    return res;
+  }
+
+  public async createModel(payload: CreatePayload, jobId: string): Promise<void> {
     this.logger.info({
       msg: 'Creating job for model',
       modelId: payload.modelId,
@@ -89,6 +126,41 @@ export class IngestionManager {
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
     } catch (error) {
       this.logger.error({ msg: 'Failed in creating tasks', modelId: payload.modelId, modelName: payload.metadata.productName, error });
+      await this.queueFileHandler.deleteQueueFile(payload.modelId);
+      throw error;
+    }
+  }
+
+  public async deleteModel(payload: DeletePayload, jobId: string): Promise<void> {
+    this.logger.info({
+      msg: 'Creating job for model',
+      modelId: payload.modelId,
+      modelName: payload.modelName,
+      pathToTileSet: payload.pathToTileset,
+    });
+
+    this.logger.debug({ msg: 'Starts writing content to queue file', modelId: payload.modelId, modelName: payload.modelName });
+    await this.queueFileHandler.createQueueFile(payload.modelId);
+
+    try {
+      const fileCount: number = await this.provider.streamModelPathsToQueueFile(payload.modelId, payload.modelName, payload.pathToTileset);
+      this.logger.debug({
+        msg: 'Finished writing content to queue file. Creating Tasks',
+        modelId: payload.modelId,
+        modelName: payload.modelName,
+        pathToTileSet: payload.pathToTileset,
+      });
+
+      const tasks = this.createTasks(this.batchSize, payload.modelId);
+      this.logger.info({ msg: 'Tasks created successfully', modelId: payload.modelId, modelName: payload.modelName });
+
+      await this.createTasksForJob(jobId, tasks, this.maxConcurrency);
+      await this.updateFileCountAndStatusOfJob(jobId, fileCount);
+      this.logger.info({ msg: 'Job created successfully', modelId: payload.modelId, pathToTileset: payload.pathToTileset });
+
+      await this.queueFileHandler.deleteQueueFile(payload.modelId);
+    } catch (error) {
+      this.logger.error({ msg: 'Failed in creating tasks', modelId: payload.modelId, pathToTileset: payload.pathToTileset, error });
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
       throw error;
     }
@@ -146,8 +218,8 @@ export class IngestionManager {
   }
 
   private async updateFileCountAndStatusOfJob(jobId: string, fileCount: number): Promise<void> {
-    const job = await this.jobManagerClient.getJob<JobParameters, TaskParameters>(jobId, false);
-    const parameters: JobParameters = { ...job.parameters, filesCount: fileCount };
+    const job = await this.jobManagerClient.getJob<CreateJobParameters, TaskParameters>(jobId, false);
+    const parameters: CreateJobParameters = { ...job.parameters, filesCount: fileCount };
     await this.jobManagerClient.updateJob(jobId, { status: OperationStatus.IN_PROGRESS, parameters });
   }
 }

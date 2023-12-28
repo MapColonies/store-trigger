@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { FactoryFunction } from 'tsyringe';
-import { IngestionController } from '../controllers/ingestionController';
+import { JobsController } from '../controllers/ingestionController';
 
 const ingestionRouterFactory: FactoryFunction<Router> = (dependencyContainer) => {
   const router = Router();
-  const controller = dependencyContainer.resolve(IngestionController);
+  const controller = dependencyContainer.resolve(JobsController);
 
-  router.post('/', controller.create);
+  router.post('/ingestion', controller.create);
+  router.delete('/deleting', controller.delete);
 
   return router;
 };

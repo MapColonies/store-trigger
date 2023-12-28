@@ -10,8 +10,7 @@ import httpLogger from '@map-colonies/express-access-log-middleware';
 import { defaultMetricsMiddleware, getTraceContexHeaderMiddleware } from '@map-colonies/telemetry';
 import { SERVICES } from './common/constants';
 import { IConfig } from './common/interfaces';
-import { INGESTION_ROUTER_SYMBOL } from './ingestion/routes/ingestionRouter';
-import { JOB_STATUS_ROUTER_SYMBOL } from './jobStatus/routes/jobStatusRouter';
+import { INGESTION_ROUTER_SYMBOL } from './jobs/routes/ingestionRouter';
 import { handleError } from './common/handleError';
 
 @injectable()
@@ -21,8 +20,7 @@ export class ServerBuilder {
   public constructor(
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(INGESTION_ROUTER_SYMBOL) private readonly ingestionRouter: Router,
-    @inject(JOB_STATUS_ROUTER_SYMBOL) private readonly jobStatusRouter: Router
+    @inject(INGESTION_ROUTER_SYMBOL) private readonly ingestionRouter: Router
   ) {
     this.serverInstance = express();
   }
@@ -45,8 +43,7 @@ export class ServerBuilder {
   }
 
   private buildRoutes(): void {
-    this.serverInstance.use('/ingestion', this.ingestionRouter);
-    this.serverInstance.use('/jobStatus', this.jobStatusRouter);
+    this.serverInstance.use('/jobs', this.ingestionRouter);
     this.buildDocsRoutes();
   }
 

@@ -1,5 +1,5 @@
 import { Layer3DMetadata } from '@map-colonies/mc-model-types';
-import { ICreateJobBody, IJobResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { ICreateJobBody, OperationStatus } from '@map-colonies/mc-priority-queue';
 
 export interface IConfig {
   get: <T>(setting: string) => T;
@@ -13,23 +13,35 @@ export interface OpenApiConfig {
   uiPath: string;
 }
 
-export interface Payload {
+export interface CreatePayload {
   modelId: string;
   pathToTileset: string;
   tilesetFilename: string;
   metadata: Layer3DMetadata;
+}
+
+export interface DeletePayload {
+  modelId: string;
+  modelName: string;
+  pathToTileset: string;
 }
 
 export interface Provider {
   streamModelPathsToQueueFile: (modelId: string, pathToTileset: string, productName: string) => Promise<number>;
 }
 
-export interface JobParameters {
+export interface CreateJobParameters {
   tilesetFilename: string;
   modelId: string;
   metadata: Layer3DMetadata;
   filesCount: number;
   pathToTileset: string;
+}
+
+export interface DeleteJobParameters {
+  modelId: string;
+  pathToTileset: string;
+  filesCount: number;
 }
 
 export interface TaskParameters {
@@ -54,19 +66,10 @@ export interface NFSConfig {
 
 export type ProviderConfig = S3Config | NFSConfig;
 
-export interface IngestionResponse {
+export interface JobsResponse {
   jobID: string;
   status: OperationStatus;
 }
 
-export interface JobStatusResponse {
-  percentage: number;
-  status: OperationStatus;
-}
-
-export interface JobStatusParams {
-  jobID: string;
-}
-
-export type JobResponse = IJobResponse<JobParameters, TaskParameters>;
-export type CreateJobBody = ICreateJobBody<JobParameters, TaskParameters>;
+export type CreateJobBody = ICreateJobBody<CreateJobParameters, TaskParameters>;
+export type DeleteJobBody = ICreateJobBody<DeleteJobParameters, TaskParameters>;

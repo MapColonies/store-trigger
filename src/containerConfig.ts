@@ -7,9 +7,8 @@ import { JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { Provider, ProviderConfig } from './common/interfaces';
 import { tracing } from './common/tracing';
-import { ingestionRouterFactory, INGESTION_ROUTER_SYMBOL } from './ingestion/routes/ingestionRouter';
+import { ingestionRouterFactory, INGESTION_ROUTER_SYMBOL } from './jobs/routes/ingestionRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
-import { jobStatusRouterFactory, JOB_STATUS_ROUTER_SYMBOL } from './jobStatus/routes/jobStatusRouter';
 import { QueueFileHandler } from './handlers/queueFileHandler';
 import { getProvider, getProviderConfig } from './providers/getProvider';
 
@@ -44,7 +43,6 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
       },
     },
     { token: INGESTION_ROUTER_SYMBOL, provider: { useFactory: ingestionRouterFactory } },
-    { token: JOB_STATUS_ROUTER_SYMBOL, provider: { useFactory: jobStatusRouterFactory } },
     {
       token: SERVICES.PROVIDER_CONFIG,
       provider: {
