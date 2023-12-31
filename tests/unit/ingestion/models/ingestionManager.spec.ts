@@ -6,24 +6,23 @@ import { container } from 'tsyringe';
 import { getApp } from '../../../../src/app';
 import { AppError } from '../../../../src/common/appError';
 import { SERVICES } from '../../../../src/common/constants';
-import { IngestionResponse, Payload } from '../../../../src/common/interfaces';
-import { IngestionManager } from '../../../../src/ingestion/models/ingestionManager';
+import { JobsResponse, IngestionPayload } from '../../../../src/common/interfaces';
+import { JobsManager } from '../../../../src/jobs/models/jobsManager';
 import {
   configProviderMock,
-  createPayload,
-  createUuid,
+  ingestionPayload,
   jobManagerClientMock,
   queueFileHandlerMock,
   createFile,
-  createJobParameters,
+  createIngestionJobParameters,
 } from '../../../helpers/mockCreator';
 
-let ingestionManager: IngestionManager;
-let payload: Payload;
+let jobsManager: JobsManager;
+let payload: IngestionPayload;
 
 describe('ingestionManager', () => {
   beforeEach(() => {
-    payload = createPayload('model');
+    payload = ingestionPayload('model');
 
     getApp({
       override: [
@@ -34,7 +33,7 @@ describe('ingestionManager', () => {
       ],
     });
 
-    ingestionManager = container.resolve(IngestionManager);
+    jobsManager = container.resolve(JobsManager);
   });
 
   afterEach(() => {
@@ -44,13 +43,13 @@ describe('ingestionManager', () => {
   describe('createJob Service', () => {
     it('returns create job response', async () => {
       // Arrange
-      const response: IngestionResponse = {
+      const response: JobsResponse = {
         jobID: '1234',
         status: OperationStatus.PENDING,
       };
       jobManagerClientMock.createJob.mockResolvedValue({ id: '1234', status: OperationStatus.PENDING });
       // Act
-      const modelResponse = await ingestionManager.createJob(payload);
+      const modelResponse = await jobsManager.createIngestionJob(payload);
       //Assert
       expect(modelResponse).toMatchObject(response);
     });
@@ -59,15 +58,14 @@ describe('ingestionManager', () => {
       // Arrange
       jobManagerClientMock.createJob.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
       // Act && Assert
-      await expect(ingestionManager.createJob(payload)).rejects.toThrow(AppError);
+      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
     });
   });
 
   describe('createModel Service', () => {
     it('resolves without error when everything is ok', async () => {
       // Arrange
-      const jobId = createUuid();
-      const parameters = createJobParameters();
+      const parameters = createIngestionJobParameters();
       const filesAmount = randNumber({ min: 1, max: 8 });
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
       configProviderMock.streamModelPathsToQueueFile.mockResolvedValue(filesAmount);
@@ -81,7 +79,7 @@ describe('ingestionManager', () => {
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
       // Act
-      const response = await ingestionManager.createModel(payload, jobId);
+      const response = await jobsManager.createIngestionJob(payload);
 
       //Assert
       expect(response).toBeUndefined();
@@ -89,35 +87,31 @@ describe('ingestionManager', () => {
 
     it(`rejects if couldn't createQueueFile queue file`, async () => {
       // Arrange
-      const jobId = createUuid();
       queueFileHandlerMock.createQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
       // Act && Assert
-      await expect(ingestionManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
     });
 
     it(`rejects if couldn't empty queue file`, async () => {
       // Arrange
-      const jobId = createUuid();
       queueFileHandlerMock.deleteQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
       // Act && Assert
-      await expect(ingestionManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
     });
 
     it('rejects if the provider failed', async () => {
       // Arrange
-      const jobId = createUuid();
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
       configProviderMock.streamModelPathsToQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
       // Act && Assert
-      await expect(ingestionManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
     });
 
     it(`rejects if couldn't read from queue file`, async () => {
       // Arrange
-      const jobId = createUuid();
       const filesAmount = randNumber({ min: 1, max: 8 });
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
       configProviderMock.streamModelPathsToQueueFile.mockResolvedValue(filesAmount);
@@ -127,12 +121,11 @@ describe('ingestionManager', () => {
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
       // Act && Assert
-      await expect(ingestionManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
     });
 
     it('rejects if there is a problem with job manager', async () => {
       // Arrange
-      const jobId = createUuid();
       const filesAmount = randNumber({ min: 1, max: 8 });
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
       configProviderMock.streamModelPathsToQueueFile.mockResolvedValue(filesAmount);
@@ -144,7 +137,7 @@ describe('ingestionManager', () => {
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
       // Act && Assert
-      await expect(ingestionManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
     });
   });
 });

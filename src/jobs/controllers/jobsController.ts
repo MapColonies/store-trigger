@@ -5,10 +5,10 @@ import httpStatus from 'http-status-codes';
 import { inject, injectable } from 'tsyringe';
 import { AppError } from '../../common/appError';
 import { SERVICES } from '../../common/constants';
-import { JobsResponse, CreatePayload, DeletePayload } from '../../common/interfaces';
+import { JobsResponse, IngestionPayload, DeletePayload } from '../../common/interfaces';
 import { JobsManager } from '../models/jobsManager';
 
-type CreateResourceHandler = RequestHandler<undefined, JobsResponse, CreatePayload>;
+type CreateResourceHandler = RequestHandler<undefined, JobsResponse, IngestionPayload>;
 type DeleteResourceHandler = RequestHandler<undefined, JobsResponse, DeletePayload>;
 
 @injectable()
@@ -24,9 +24,9 @@ export class JobsController {
   }
 
   public create: CreateResourceHandler = async (req, res, next) => {
-    const payload: CreatePayload = req.body;
+    const payload: IngestionPayload = req.body;
     try {
-      const jobCreated = await this.manager.createPostJob(payload);
+      const jobCreated = await this.manager.createIngestionJob(payload);
       this.logger.debug({ msg: `Job created payload`, modelId: payload.modelId, payload, modelName: payload.metadata.productName });
       res.status(httpStatus.CREATED).json(jobCreated);
       await this.manager.createModel(payload, jobCreated.jobID);
@@ -47,7 +47,7 @@ export class JobsController {
     const payload: DeletePayload = req.body;
     try {
       const jobCreated = await this.manager.createDeleteJob(payload);
-      this.logger.debug({ msg: `Job created payload`, modelId: payload.modelId, payload, modelLink: payload.modelLink });
+      this.logger.debug({ msg: `Job created payload`, modelId: payload.modelId, payload, pathToTileset: payload.pathToTileset });
       res.status(httpStatus.CREATED).json(jobCreated);
       await this.manager.deleteModel(payload, jobCreated.jobID);
       this.createdResourceCounter.add(1);
@@ -56,7 +56,8 @@ export class JobsController {
         this.logger.error({
           msg: `Failed in deleting model! Reason: ${error.message}`,
           modelId: payload.modelId,
-          modelLink: payload.modelLink,
+          pathToTileset: payload.pathToTileset,
+          modelName: payload.modelName,
         });
       }
       return next(error);

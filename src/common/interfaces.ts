@@ -1,5 +1,8 @@
 import { Layer3DMetadata } from '@map-colonies/mc-model-types';
 import { ICreateJobBody, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { StorageClass } from '@aws-sdk/client-s3';
+import { S3Provider } from '../providers/s3Provider';
+import { NFSProvider } from '../providers/nfsProvider';
 
 export interface IConfig {
   get: <T>(setting: string) => T;
@@ -13,7 +16,7 @@ export interface OpenApiConfig {
   uiPath: string;
 }
 
-export interface CreatePayload {
+export interface IngestionPayload {
   modelId: string;
   pathToTileset: string;
   tilesetFilename: string;
@@ -30,7 +33,7 @@ export interface Provider {
   streamModelPathsToQueueFile: (modelId: string, pathToTileset: string, productName: string) => Promise<number>;
 }
 
-export interface CreateJobParameters {
+export interface IngestionJobParameters {
   tilesetFilename: string;
   modelId: string;
   metadata: Layer3DMetadata;
@@ -41,7 +44,18 @@ export interface CreateJobParameters {
 export interface DeleteJobParameters {
   modelId: string;
   pathToTileset: string;
+  modelName: string;
   filesCount: number;
+}
+
+export interface ProviderManager {
+  ingestion: S3Provider | NFSProvider;
+  delete: S3Provider | NFSProvider;
+}
+
+export interface Tasks {
+  ingestion: string;
+  delete: string;
 }
 
 export interface TaskParameters {
@@ -51,17 +65,27 @@ export interface TaskParameters {
 }
 
 export interface S3Config {
+  type: 'S3';
   accessKeyId: string;
   secretAccessKey: string;
   endpointUrl: string;
   bucket: string;
   region: string;
-  sslEnabled: boolean;
+  tls: boolean;
   forcePathStyle: boolean;
+  maxAttempts: number;
+  sigVersion: string;
+  storageClass?: StorageClass;
 }
 
 export interface NFSConfig {
+  type: 'NFS';
   pvPath: string;
+}
+
+export interface ProvidersConfig {
+  ingestion: ProviderConfig;
+  delete: ProviderConfig;
 }
 
 export type ProviderConfig = S3Config | NFSConfig;
@@ -71,5 +95,10 @@ export interface JobsResponse {
   status: OperationStatus;
 }
 
-export type CreateJobBody = ICreateJobBody<CreateJobParameters, TaskParameters>;
+export interface JobTypes {
+  ingestion: string;
+  delete: string;
+}
+
+export type CreateJobBody = ICreateJobBody<IngestionJobParameters, TaskParameters>;
 export type DeleteJobBody = ICreateJobBody<DeleteJobParameters, TaskParameters>;

@@ -7,27 +7,6 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 paths:
-  /jobStatus/{jobID}:
-    get:
-      operationId: getJobStatus
-      tags:
-        - jobStatus
-      summary: gets the resource
-      parameters:
-        - $ref: '#/components/parameters/jobID'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/jobStatus'
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
   /ingestion:
     post:
       operationId: createModel
@@ -39,6 +18,36 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/payload'
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        5XX:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /delete:
+    delete:
+      operationId: deleteModel
+      tags:
+        - delete
+      summary: creates a new delete job and invokes a model deleting flow
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/delete-request'
       responses:
         '201':
           description: created
@@ -255,6 +264,28 @@ components:
         - $ref: '#/components/schemas/MultiPoint'
         - $ref: '#/components/schemas/MultiLineString'
         - $ref: '#/components/schemas/MultiPolygon'
+    delete-request:
+      type: object
+      description: 3d tiles delete requestBody
+      required:
+        - modelName
+        - modelId
+        - pathToTileset
+      properties:
+        modelId:
+          type: string
+          nullable: true
+          default: null
+          example: a2234fdf
+          description: ID of product
+        modelName:
+          type: string
+          maxLength: 50
+          description: Name of product
+        pathToTileset:
+          type: string
+          description: path to tileset
+          example: NewYork
     ingestion-payload:
       type: object
       description: 3d tiles ingestion payload

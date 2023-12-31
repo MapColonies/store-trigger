@@ -42,6 +42,33 @@
     "provider": "NFS",
     "blackList": ["tar", "zip", "rar", "7z"]
   },
+  "provider": {
+    "ingestion": {
+      "type": "NFS",
+      "accessKeyId": "minioadmin",
+      "secretAccessKey": "minioadmin",
+      "endpointUrl": "http://127.0.0.1:9000",
+      "bucket": "3dtiles",
+      "region": "aws-global",
+      "forcePathStyle": true,
+      "tls": false,
+      "maxAttempts": 4,
+      "sigVersion": "v4"
+    },
+    "delete": {
+      "type": "S3",
+      "accessKeyId": "minioadmin",
+      "secretAccessKey": "minioadmin",
+      "endpointUrl": "http://127.0.0.1:9000",
+      "bucket": "3dtiles",
+      "region": "aws-global",
+      "forcePathStyle": true,
+      "tls": false,
+      "maxAttempts": 4,
+      "sigVersion": "v4",
+      "storageClass": "STANDARD"
+    }
+  },
   "jobManager": {
     "url": "http://127.0.0.1:8080",
     "job": {

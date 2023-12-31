@@ -6,20 +6,18 @@ import {
   CreateJobBody,
   IConfig,
   JobsResponse,
-  CreateJobParameters,
-  Provider,
+  IngestionJobParameters,
   TaskParameters,
   DeletePayload,
-  CreatePayload,
+  IngestionPayload,
   DeleteJobBody,
   DeleteJobParameters,
+  ProviderManager,
 } from '../../common/interfaces';
 import { QueueFileHandler } from '../../handlers/queueFileHandler';
 
 @injectable()
 export class JobsManager {
-  private readonly providerName: string;
-  private readonly taskType: string;
   private readonly batchSize: number;
   private readonly maxConcurrency!: number;
 
@@ -27,21 +25,19 @@ export class JobsManager {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.JOB_MANAGER_CLIENT) private readonly jobManagerClient: JobManagerClient,
-    @inject(SERVICES.PROVIDER) private readonly provider: Provider,
+    @inject(SERVICES.PROVIDER_MANAGER) private readonly providerManager: ProviderManager,
+
     @inject(SERVICES.QUEUE_FILE_HANDLER) protected readonly queueFileHandler: QueueFileHandler
   ) {
-    this.providerName = this.config.get<string>('ingestion.provider');
     this.batchSize = config.get<number>('jobManager.task.batches');
-    this.taskType = config.get<string>('jobManager.task.type');
     this.maxConcurrency = this.config.get<number>('maxConcurrency');
-    const jobType = this.config.get<string>('jobManager')
   }
 
-  public async createPostJob(payload: CreatePayload): Promise<JobsResponse> {
+  public async createIngestionJob(payload: IngestionPayload): Promise<JobsResponse> {
     const job: CreateJobBody = {
       resourceId: payload.modelId,
       version: '1',
-      type: ,
+      type: JOB_TYPE.ingestion,
       parameters: {
         metadata: payload.metadata,
         modelId: payload.modelId,
@@ -57,7 +53,7 @@ export class JobsManager {
       domain: '3D',
     };
 
-    const jobResponse = await this.jobManagerClient.createJob<CreateJobParameters, TaskParameters>(job);
+    const jobResponse = await this.jobManagerClient.createJob<IngestionJobParameters, TaskParameters>(job);
 
     const res: JobsResponse = {
       jobID: jobResponse.id,
@@ -71,9 +67,10 @@ export class JobsManager {
     const job: DeleteJobBody = {
       resourceId: payload.modelId,
       version: '1',
-      type: 'deleting',
+      type: JOB_TYPE.delete,
       parameters: {
         modelId: payload.modelId,
+        modelName: payload.modelName,
         pathToTileset: payload.pathToTileset,
         filesCount: 0,
       },
@@ -92,22 +89,20 @@ export class JobsManager {
     return res;
   }
 
-  public async createModel(payload: CreatePayload, jobId: string): Promise<void> {
+  public async createModel(payload: IngestionPayload, jobId: string): Promise<void> {
     this.logger.info({
-      msg: 'Creating job for model',
+      msg: 'Creating ingestion job for model',
       modelId: payload.modelId,
       modelName: payload.metadata.productName,
-      provider: this.providerName,
     });
 
     this.logger.debug({ msg: 'Starts writing content to queue file', modelId: payload.modelId, modelName: payload.metadata.productName });
     await this.queueFileHandler.createQueueFile(payload.modelId);
 
     try {
-      const fileCount: number = await this.provider.streamModelPathsToQueueFile(
+      const fileCount: number = await this.providerManager.ingestion.streamModelPathsToQueueFile(
         payload.modelId,
         payload.pathToTileset,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         payload.metadata.productName!
       );
       this.logger.debug({
@@ -121,7 +116,7 @@ export class JobsManager {
 
       await this.createTasksForJob(jobId, tasks, this.maxConcurrency);
       await this.updateFileCountAndStatusOfJob(jobId, fileCount);
-      this.logger.info({ msg: 'Job created successfully', modelId: payload.modelId, modelName: payload.metadata.productName });
+      this.logger.info({ msg: 'Post Job created successfully', modelId: payload.modelId, modelName: payload.metadata.productName });
 
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
     } catch (error) {
@@ -133,7 +128,7 @@ export class JobsManager {
 
   public async deleteModel(payload: DeletePayload, jobId: string): Promise<void> {
     this.logger.info({
-      msg: 'Creating job for model',
+      msg: 'Creating delete job for model',
       modelId: payload.modelId,
       modelName: payload.modelName,
       pathToTileSet: payload.pathToTileset,
@@ -143,7 +138,11 @@ export class JobsManager {
     await this.queueFileHandler.createQueueFile(payload.modelId);
 
     try {
-      const fileCount: number = await this.provider.streamModelPathsToQueueFile(payload.modelId, payload.modelName, payload.pathToTileset);
+      const fileCount: number = await this.providerManager.delete.streamModelPathsToQueueFile(
+        payload.modelId,
+        payload.modelName,
+        payload.pathToTileset
+      );
       this.logger.debug({
         msg: 'Finished writing content to queue file. Creating Tasks',
         modelId: payload.modelId,
@@ -156,7 +155,7 @@ export class JobsManager {
 
       await this.createTasksForJob(jobId, tasks, this.maxConcurrency);
       await this.updateFileCountAndStatusOfJob(jobId, fileCount);
-      this.logger.info({ msg: 'Job created successfully', modelId: payload.modelId, pathToTileset: payload.pathToTileset });
+      this.logger.info({ msg: 'Delete Job created successfully', modelId: payload.modelId, pathToTileset: payload.pathToTileset });
 
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
     } catch (error) {
@@ -207,7 +206,7 @@ export class JobsManager {
 
   private buildTaskFromChunk(chunk: string[], modelId: string): ICreateTaskBody<TaskParameters> {
     const parameters: TaskParameters = { paths: chunk, modelId, lastIndexError: -1 };
-    return { type: this.taskType, parameters };
+    return { parameters };
   }
 
   private isFileInBlackList(data: string): boolean {
@@ -218,8 +217,8 @@ export class JobsManager {
   }
 
   private async updateFileCountAndStatusOfJob(jobId: string, fileCount: number): Promise<void> {
-    const job = await this.jobManagerClient.getJob<CreateJobParameters, TaskParameters>(jobId, false);
-    const parameters: CreateJobParameters = { ...job.parameters, filesCount: fileCount };
+    const job = await this.jobManagerClient.getJob<IngestionJobParameters, TaskParameters>(jobId, false);
+    const parameters: IngestionJobParameters = { ...job.parameters, filesCount: fileCount };
     await this.jobManagerClient.updateJob(jobId, { status: OperationStatus.IN_PROGRESS, parameters });
   }
 }

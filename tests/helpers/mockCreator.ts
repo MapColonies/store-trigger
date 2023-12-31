@@ -3,7 +3,7 @@ import { randNumber, randPastDate, randSentence, randUuid, randWord } from '@ngn
 import { Polygon } from 'geojson';
 import { Layer3DMetadata, ProductType, RecordStatus, RecordType } from '@map-colonies/mc-model-types';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import { CreateJobBody, JobParameters, Payload } from '../../src/common/interfaces';
+import { CreateJobBody, IngestionJobParameters as IngestionJobParameters, IngestionPayload as IngestionPayload } from '../../src/common/interfaces';
 
 const maxResolutionMeter = 8000;
 const noData = 999;
@@ -70,7 +70,7 @@ export const createMetadata = (): Layer3DMetadata => {
   };
 };
 
-export const createPayload = (modelName: string): Payload => {
+export const ingestionPayload = (modelName: string): IngestionPayload => {
   return {
     modelId: createUuid(),
     pathToTileset: modelName,
@@ -79,12 +79,12 @@ export const createPayload = (modelName: string): Payload => {
   };
 };
 
-export const createJobPayload = (payload: Payload): CreateJobBody => {
+export const ingestionJobPayload = (payload: IngestionPayload): CreateJobBody => {
   return {
     resourceId: payload.modelId,
     version: '1',
     type: config.get<string>('jobManager.job.type'),
-    parameters: createJobParameters(),
+    parameters: createIngestionJobParameters(),
     productType: payload.metadata.productType,
     productName: payload.metadata.productName,
     percentage: 0,
@@ -94,7 +94,7 @@ export const createJobPayload = (payload: Payload): CreateJobBody => {
   };
 };
 
-export const createJobParameters = (): JobParameters => {
+export const createIngestionJobParameters = (): IngestionJobParameters => {
   return {
     metadata: createMetadata(),
     modelId: createUuid(),

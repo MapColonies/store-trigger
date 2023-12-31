@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { FactoryFunction } from 'tsyringe';
-import { JobsController } from '../controllers/ingestionController';
+import { JobsController } from '../controllers/jobsController';
 
-const ingestionRouterFactory: FactoryFunction<Router> = (dependencyContainer) => {
+const jobsRouterFactory: FactoryFunction<Router> = (dependencyContainer) => {
   const router = Router();
   const controller = dependencyContainer.resolve(JobsController);
 
@@ -12,6 +12,6 @@ const ingestionRouterFactory: FactoryFunction<Router> = (dependencyContainer) =>
   return router;
 };
 
-export const INGESTION_ROUTER_SYMBOL = Symbol('ingestionRouterFactory');
+export const JOBS_ROUTER_SYMBOL = Symbol('jobsRouterFactory');
 
-export { ingestionRouterFactory };
+export { jobsRouterFactory as jobsRouterFactory };

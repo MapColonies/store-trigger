@@ -4,16 +4,17 @@ import httpStatusCodes from 'http-status-codes';
 import { container } from 'tsyringe';
 import { getApp } from '../../../../src/app';
 import { SERVICES } from '../../../../src/common/constants';
-import { Provider } from '../../../../src/common/interfaces';
-import { getProvider } from '../../../../src/providers/getProvider';
-import { createPayload } from '../../../helpers/mockCreator';
-import { IngestionRequestSender } from '../helpers/requestSender';
+import { Provider, ProviderManager } from '../../../../src/common/interfaces';
+import { getProvider, getProviderManager } from '../../../../src/providers/getProvider';
+import { ingestionJobPayload } from '../../../helpers/mockCreator';
+import { JobsRequestSender } from '../helpers/requestSender';
 
 describe('IngestionController on S3', function () {
-  let requestSender: IngestionRequestSender;
+  let requestSender: JobsRequestSender;
+  let providerManager: ProviderManager;
 
   const jobManagerClientMock = {
-    createJob: jest.fn(),
+    createIngestionJob: jest.fn(),
   };
 
   beforeAll(() => {
@@ -22,17 +23,18 @@ describe('IngestionController on S3', function () {
         { token: SERVICES.JOB_MANAGER_CLIENT, provider: { useValue: jobManagerClientMock } },
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
         {
-          token: SERVICES.PROVIDER,
+          token: SERVICES.PROVIDER_MANAGER,
           provider: {
-            useFactory: (): Provider => {
-              return getProvider('s3');
+            useFactory: (): ProviderManager => {
+              return getProviderManager();
             },
           },
         },
       ],
     });
 
-    requestSender = new IngestionRequestSender(app);
+    providerManager = container.resolve(SERVICES.PROVIDER_MANAGER);
+    requestSender = new JobsRequestSender(app);
   });
 
   afterAll(function () {
@@ -43,8 +45,8 @@ describe('IngestionController on S3', function () {
   describe('POST /ingestion', function () {
     describe('Happy Path 🙂', function () {
       it('should return 201 status code and the added model', async function () {
-        const payload = createPayload('model1');
-        jobManagerClientMock.createJob.mockResolvedValueOnce({ id: '1' });
+        const payload = ingestionJobPayload('model1');
+        jobManagerClientMock.createIngestionJob.mockResolvedValueOnce({ id: '1' });
 
         const response = await requestSender.create(payload);
 
@@ -56,8 +58,8 @@ describe('IngestionController on S3', function () {
 
     describe('Sad Path 😥', function () {
       it('should return 500 status code if a network exception happens in job manager', async function () {
-        const payload = createPayload('bla');
-        jobManagerClientMock.createJob.mockRejectedValueOnce(new Error('JobManager is not available'));
+        const payload = ingestionJobPayload('bla');
+        jobManagerClientMock.createIngestionJob.mockRejectedValueOnce(new Error('JobManager is not available'));
 
         const response = await requestSender.create(payload);
 
@@ -69,7 +71,7 @@ describe('IngestionController on S3', function () {
 });
 
 describe('IngestionController on NFS', function () {
-  let requestSender: IngestionRequestSender;
+  let requestSender: JobsRequestSender;
   const jobManagerClientMock = {
     createJob: jest.fn(),
   };
@@ -80,17 +82,17 @@ describe('IngestionController on NFS', function () {
         { token: SERVICES.JOB_MANAGER_CLIENT, provider: { useValue: jobManagerClientMock } },
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
         {
-          token: SERVICES.PROVIDER,
+          token: SERVICES.PROVIDER_MANAGER,
           provider: {
-            useFactory: (): Provider => {
-              return getProvider('nfs');
+            useFactory: (): ProviderManager => {
+              return getProviderManager();
             },
           },
         },
       ],
     });
 
-    requestSender = new IngestionRequestSender(app);
+    requestSender = new JobsRequestSender(app);
   });
 
   afterAll(function () {
@@ -101,7 +103,7 @@ describe('IngestionController on NFS', function () {
   describe('POST /ingestion', function () {
     describe('Happy Path 🙂', function () {
       it('should return 201 status code and the added model', async function () {
-        const payload = createPayload('model1');
+        const payload = ingestionJobPayload('model1');
         jobManagerClientMock.createJob.mockResolvedValueOnce({ id: '1' });
 
         const response = await requestSender.create(payload);
@@ -114,7 +116,7 @@ describe('IngestionController on NFS', function () {
 
     describe('Sad Path 😥', function () {
       it('should return 500 status code if a network exception happens in job manager', async function () {
-        const payload = createPayload('bla');
+        const payload = ingestionJobPayload('bla');
         jobManagerClientMock.createJob.mockRejectedValueOnce(new Error('JobManager is not available'));
 
         const response = await requestSender.create(payload);
