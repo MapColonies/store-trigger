@@ -1,7 +1,7 @@
 import config from 'config';
 import { AppError } from '../../../src/common/appError';
 import { NFSConfig, S3Config } from '../../../src/common/interfaces';
-import { getProvider, getProviderConfig } from '../../../src/providers/getProvider';
+import { getProvider } from '../../../src/providers/getProvider';
 
 describe('getProviderConfig tests', () => {
   it('should return the NFS config when the provider is NFS', () => {
@@ -35,7 +35,7 @@ describe('getProvider tests', () => {
   it('should throw an error when the provider is nor S3 or NFS', () => {
     const provider = 'bla';
 
-    const response = () => getProvider(provider);
+    const response = () => get(provider);
 
     expect(response).toThrow(AppError);
   });
