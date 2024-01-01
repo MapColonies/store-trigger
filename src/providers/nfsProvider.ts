@@ -21,7 +21,7 @@ export class NFSProvider implements Provider {
     try {
       await fs.access(modelPath);
     } catch (error) {
-      this.logger.error({ msg: 'failed to access the folder', modelId, modelName, error });
+      this.logger.error({ msg: 'failed to access the folder',error, modelId, modelName });
       throw new AppError(httpStatus.NOT_FOUND, `Model ${modelName} doesn't exists in the agreed folder. Path: ${modelPath}`, true);
     }
 

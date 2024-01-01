@@ -48,11 +48,6 @@ export interface DeleteJobParameters {
   filesCount: number;
 }
 
-export interface ProviderManager {
-  ingestion: S3Provider | NFSProvider;
-  delete: S3Provider | NFSProvider;
-}
-
 export interface Tasks {
   ingestion: string;
   delete: string;
@@ -64,8 +59,12 @@ export interface TaskParameters {
   lastIndexError: number;
 }
 
+export interface ProviderManager {
+  ingestion: S3Provider | NFSProvider;
+  delete: S3Provider | NFSProvider;
+}
 export interface S3Config {
-  type: 'S3';
+  type: "S3"
   accessKeyId: string;
   secretAccessKey: string;
   endpointUrl: string;
@@ -79,7 +78,7 @@ export interface S3Config {
 }
 
 export interface NFSConfig {
-  type: 'NFS';
+  type: 'NFS'
   pvPath: string;
 }
 

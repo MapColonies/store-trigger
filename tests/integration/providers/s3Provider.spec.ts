@@ -1,47 +1,50 @@
 import fs from 'fs';
 import os from 'os';
-import config from 'config';
 import jsLogger from '@map-colonies/js-logger';
 import { randNumber, randWord } from '@ngneat/falso';
 import { container } from 'tsyringe';
 import { AppError } from '../../../src/common/appError';
-import { S3Provider } from '../../../src/providers/s3Provider';
 import { getApp } from '../../../src/app';
+import { mockS3S3 } from '../../helpers/mockCreator'
 import { SERVICES } from '../../../src/common/constants';
-import { S3Config } from '../../../src/common/interfaces';
+import { ProviderManager } from '../../../src/common/interfaces';
 import { S3Helper } from '../../helpers/s3Helper';
 import { QueueFileHandler } from '../../../src/handlers/queueFileHandler';
+import { getProviderManager } from '../../../src/providers/getProvider';
 
 describe('S3Provider tests', () => {
-  let provider: S3Provider;
+  let providerManager: ProviderManager;
   let s3Helper: S3Helper;
   let queueFileHandler: QueueFileHandler;
 
   const queueFilePath = os.tmpdir();
-  const s3Config = config.get<S3Config>('S3');
 
-  beforeAll(async () => {
+  beforeAll( () => {
     getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
-        { token: SERVICES.PROVIDER_CONFIG, provider: { useValue: s3Config } },
+        {
+          token: SERVICES.PROVIDER_MANAGER,
+          provider: {
+            useFactory: (): ProviderManager => {
+              return getProviderManager(mockS3S3);
+            },
+          },
+        },
       ],
     });
-    provider = container.resolve(S3Provider);
-    s3Helper = container.resolve(S3Helper);
+    providerManager = container.resolve(SERVICES.PROVIDER_MANAGER);
+    s3Helper = new S3Helper(mockS3S3.ingestion);
     queueFileHandler = container.resolve(QueueFileHandler);
-
-    await s3Helper.createBucket();
   });
 
-  afterEach(() => {
+  beforeEach(async () => {
+    await s3Helper.initialize();
+  });
+
+  afterEach(async () => {
+    await s3Helper.terminate();
     jest.clearAllMocks();
-  });
-
-  afterAll(async () => {
-    await s3Helper.clearBucket();
-    await s3Helper.deleteBucket();
-    s3Helper.killS3();
   });
 
   describe('streamModelPathsToQueueFile', () => {
@@ -60,7 +63,7 @@ describe('S3Provider tests', () => {
       await s3Helper.createFileOfModel(pathToTileset, 'subDir/file');
       expectedFiles.push(`${pathToTileset}/subDir/file`);
 
-      await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      await providerManager.ingestion.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
 
       for (const file of expectedFiles) {
@@ -76,7 +79,7 @@ describe('S3Provider tests', () => {
       const pathToTileset = randWord();
 
       const result = async () => {
-        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+        await providerManager.ingestion.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       };
 
       await expect(result).rejects.toThrow(AppError);

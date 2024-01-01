@@ -29,7 +29,7 @@ export class JobsController {
       const jobCreated = await this.manager.createIngestionJob(payload);
       this.logger.debug({ msg: `Job created payload`, modelId: payload.modelId, payload, modelName: payload.metadata.productName });
       res.status(httpStatus.CREATED).json(jobCreated);
-      await this.manager.createModel(payload, jobCreated.jobID);
+      await this.manager.ingestModel(payload, jobCreated.jobID);
       this.createdResourceCounter.add(1);
     } catch (error) {
       if (error instanceof AppError) {

@@ -7,11 +7,11 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 paths:
-  /ingestion:
+  /jobs/ingestion:
     post:
       operationId: createModel
       tags:
-        - ingestion
+        - jobs
       summary: creates a new job and invokes a new model ingestion flow
       requestBody:
         content:
@@ -37,11 +37,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-  /delete:
-    delete:
+  /jobs/delete:
+    post:
       operationId: deleteModel
       tags:
-        - delete
+        - jobs
       summary: creates a new delete job and invokes a model deleting flow
       requestBody:
         content:

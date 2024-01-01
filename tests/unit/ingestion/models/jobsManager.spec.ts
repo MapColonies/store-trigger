@@ -9,12 +9,13 @@ import { SERVICES } from '../../../../src/common/constants';
 import { JobsResponse, IngestionPayload } from '../../../../src/common/interfaces';
 import { JobsManager } from '../../../../src/jobs/models/jobsManager';
 import {
-  configProviderMock,
-  ingestionPayload,
+  createIngestionPayload,
   jobManagerClientMock,
   queueFileHandlerMock,
   createFile,
   createIngestionJobParameters,
+  createUuid,
+  providerManagerMock,
 } from '../../../helpers/mockCreator';
 
 let jobsManager: JobsManager;
@@ -22,13 +23,13 @@ let payload: IngestionPayload;
 
 describe('ingestionManager', () => {
   beforeEach(() => {
-    payload = ingestionPayload('model');
+    payload = createIngestionPayload('model');
 
     getApp({
       override: [
         { token: SERVICES.QUEUE_FILE_HANDLER, provider: { useValue: queueFileHandlerMock } },
         { token: SERVICES.JOB_MANAGER_CLIENT, provider: { useValue: jobManagerClientMock } },
-        { token: SERVICES.PROVIDER, provider: { useValue: configProviderMock } },
+        { token: SERVICES.PROVIDER_MANAGER, provider: { useValue: providerManagerMock } },
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
       ],
     });
@@ -40,7 +41,7 @@ describe('ingestionManager', () => {
     jest.clearAllMocks();
   });
 
-  describe('createJob Service', () => {
+  describe('createIngestionJob Service', () => {
     it('returns create job response', async () => {
       // Arrange
       const response: JobsResponse = {
@@ -62,13 +63,14 @@ describe('ingestionManager', () => {
     });
   });
 
-  describe('createModel Service', () => {
+  describe('createIngestionModel Service', () => {
     it('resolves without error when everything is ok', async () => {
       // Arrange
+      const jobId = createUuid();
       const parameters = createIngestionJobParameters();
       const filesAmount = randNumber({ min: 1, max: 8 });
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
-      configProviderMock.streamModelPathsToQueueFile.mockResolvedValue(filesAmount);
+      providerManagerMock.ingestion.streamModelPathsToQueueFile.mockResolvedValue(filesAmount);
       for (let i = 0; i < filesAmount; i++) {
         queueFileHandlerMock.readline.mockReturnValueOnce(createFile());
       }
@@ -79,7 +81,7 @@ describe('ingestionManager', () => {
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
       // Act
-      const response = await jobsManager.createIngestionJob(payload);
+      const response = await jobsManager.ingestModel(payload, jobId);
 
       //Assert
       expect(response).toBeUndefined();
@@ -87,48 +89,53 @@ describe('ingestionManager', () => {
 
     it(`rejects if couldn't createQueueFile queue file`, async () => {
       // Arrange
+      const jobId = createUuid();
       queueFileHandlerMock.createQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
       // Act && Assert
-      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
+      await expect(jobsManager.ingestModel(payload, jobId)).rejects.toThrow(AppError);
     });
 
     it(`rejects if couldn't empty queue file`, async () => {
       // Arrange
+      const jobId = createUuid();
       queueFileHandlerMock.deleteQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
       // Act && Assert
-      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
+      await expect(jobsManager.ingestModel(payload, jobId)).rejects.toThrow(AppError);
     });
 
     it('rejects if the provider failed', async () => {
       // Arrange
+      const jobId = createUuid();
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
-      configProviderMock.streamModelPathsToQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
+      providerManagerMock.ingestion.streamModelPathsToQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
       // Act && Assert
-      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
+      await expect(jobsManager.ingestModel(payload, jobId)).rejects.toThrow(AppError);
     });
 
     it(`rejects if couldn't read from queue file`, async () => {
       // Arrange
+      const jobId = createUuid();
       const filesAmount = randNumber({ min: 1, max: 8 });
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
-      configProviderMock.streamModelPathsToQueueFile.mockResolvedValue(filesAmount);
+      providerManagerMock.ingestion.streamModelPathsToQueueFile.mockResolvedValue(filesAmount);
       queueFileHandlerMock.readline.mockImplementation(() => {
         throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true);
       });
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
       // Act && Assert
-      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
+      await expect(jobsManager.ingestModel(payload, jobId)).rejects.toThrow(AppError);
     });
 
     it('rejects if there is a problem with job manager', async () => {
       // Arrange
+      const jobId = createUuid();
       const filesAmount = randNumber({ min: 1, max: 8 });
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
-      configProviderMock.streamModelPathsToQueueFile.mockResolvedValue(filesAmount);
+      providerManagerMock.ingestion.streamModelPathsToQueueFile.mockResolvedValue(filesAmount);
       for (let i = 0; i < filesAmount; i++) {
         queueFileHandlerMock.readline.mockReturnValueOnce(createFile());
       }
@@ -137,7 +144,7 @@ describe('ingestionManager', () => {
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
       // Act && Assert
-      await expect(jobsManager.createIngestionJob(payload)).rejects.toThrow(AppError);
+      await expect(jobsManager.ingestModel(payload, jobId)).rejects.toThrow(AppError);
     });
   });
 });

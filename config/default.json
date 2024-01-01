@@ -79,7 +79,10 @@
     },
     "task": {
       "batches": 100,
-      "type": "Ingestion"
+      "type": {
+        "ingestion": "tiles_copying",
+        "delete": "tiles_deleting"
+      }
     }
   },
   "maxConcurrency": 5

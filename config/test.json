@@ -13,17 +13,38 @@
     "pvPath": "./tests/helpers/3DModels"
   },
   "ingestion": {
-    "provider": "S3",
+    "provider": "NFS",
     "blackList": ["tar", "zip", "rar", "7z"]
+  },
+  "provider": {
+    "ingestion": {
+      "accessKeyId": "minioadmin",
+      "secretAccessKey": "minioadmin",
+      "endpointUrl": "http://127.0.0.1:9000",
+      "bucket": "test",
+      "region": "us-east-1",
+      "forcePathStyle": true,
+      "sslEnabled": false,
+      "maxAttempts": 3
+    },
+    "delete": {
+      "pvPath": "./tests/helpers/3DModels"
+    }
   },
   "jobManager": {
     "url": "http://127.0.0.1:8080",
     "job": {
-      "type": "Ingestion_New_3D"
+      "type": {
+        "ingestion": "Ingestion_New_3D",
+        "delete": "Delete_3D_Model"
+      }
     },
     "task": {
       "batches": 5,
-      "type": "Ingestion"
+      "type": {
+        "ingestion": "tiles_copying",
+        "delete": "tiles_deleting"
+      }
     }
   },
   "maxConcurrency": 5

@@ -8,29 +8,36 @@ import jsLogger from '@map-colonies/js-logger';
 import { getApp } from '../../../src/app';
 import { NFSProvider } from '../../../src/providers/nfsProvider';
 import { SERVICES } from '../../../src/common/constants';
-import { NFSConfig } from '../../../src/common/interfaces';
+import { NFSConfig, ProviderManager } from '../../../src/common/interfaces';
 import { AppError } from '../../../src/common/appError';
-import { createFile, queueFileHandlerMock } from '../../helpers/mockCreator';
+import { createFile, mockNFSNFS, queueFileHandlerMock } from '../../helpers/mockCreator';
 import { QueueFileHandler } from '../../../src/handlers/queueFileHandler';
 import { NFSHelper } from '../../helpers/nfsHelper';
+import { getProviderManager } from '../../../src/providers/getProvider';
 
 describe('NFSProvider tests', () => {
-  let provider: NFSProvider;
+  let providerManager: ProviderManager;
   let queueFileHandler: QueueFileHandler;
   const queueFilePath = os.tmpdir();
-  const nfsConfig = config.get<NFSConfig>('NFS');
   let nfsHelper: NFSHelper;
 
   beforeAll(() => {
     getApp({
       override: [
-        { token: SERVICES.PROVIDER_CONFIG, provider: { useValue: nfsConfig } },
+        {
+          token: SERVICES.PROVIDER_MANAGER,
+          provider: {
+            useFactory: (): ProviderManager => {
+              return getProviderManager(mockNFSNFS);
+            },
+          },
+        },
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
       ],
     });
-    provider = container.resolve(NFSProvider);
+    providerManager = container.resolve(SERVICES.PROVIDER_MANAGER);
     queueFileHandler = container.resolve(QueueFileHandler);
-    nfsHelper = new NFSHelper(nfsConfig);
+    nfsHelper = new NFSHelper(mockNFSNFS.ingestion);
   });
 
   beforeEach(() => {
@@ -55,7 +62,7 @@ describe('NFSProvider tests', () => {
         expected = `${expected}${pathToTileset}/${file}\n`;
       }
 
-      await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      await providerManager.ingestion.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
 
       expect(result).toStrictEqual(expected);
@@ -68,7 +75,7 @@ describe('NFSProvider tests', () => {
       const modelId = randUuid();
 
       const result = async () => {
-        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+        await providerManager.ingestion.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       };
 
       await expect(result).rejects.toThrow(AppError);
@@ -77,12 +84,19 @@ describe('NFSProvider tests', () => {
     it('if queue file handler does not work, throws error', async () => {
       getApp({
         override: [
-          { token: SERVICES.PROVIDER_CONFIG, provider: { useValue: nfsConfig } },
+          {
+            token: SERVICES.PROVIDER_MANAGER,
+            provider: {
+              useFactory: (): ProviderManager => {
+                return getProviderManager(mockNFSNFS);
+              },
+            },
+          },
           { token: SERVICES.QUEUE_FILE_HANDLER, provider: { useValue: queueFileHandlerMock } },
           { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
         ],
       });
-      provider = container.resolve(NFSProvider);
+      providerManager = container.resolve(SERVICES.PROVIDER_MANAGER);
       const pathToTileset = randWord();
       const modelName = randWord();
       const modelId = randUuid();
@@ -91,7 +105,7 @@ describe('NFSProvider tests', () => {
       queueFileHandlerMock.writeFileNameToQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, 'queueFileHandler', false));
 
       const result = async () => {
-        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+        await providerManager.ingestion.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       };
 
       await expect(result).rejects.toThrow(AppError);

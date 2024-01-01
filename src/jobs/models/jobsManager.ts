@@ -89,7 +89,7 @@ export class JobsManager {
     return res;
   }
 
-  public async createModel(payload: IngestionPayload, jobId: string): Promise<void> {
+  public async ingestModel(payload: IngestionPayload, jobId: string): Promise<void> {
     this.logger.info({
       msg: 'Creating ingestion job for model',
       modelId: payload.modelId,
@@ -116,7 +116,7 @@ export class JobsManager {
 
       await this.createTasksForJob(jobId, tasks, this.maxConcurrency);
       await this.updateFileCountAndStatusOfJob(jobId, fileCount);
-      this.logger.info({ msg: 'Post Job created successfully', modelId: payload.modelId, modelName: payload.metadata.productName });
+      this.logger.info({ msg: 'Ingestion Job created successfully', modelId: payload.modelId, modelName: payload.metadata.productName });
 
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
     } catch (error) {
