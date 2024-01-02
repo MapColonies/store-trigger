@@ -1,4 +1,4 @@
-openapi: '3.0.1'
+openapi: "3.0.1"
 info:
   title: Layer metadata definitions
   version: 2.0.0
@@ -16,7 +16,7 @@ components:
         - RasterAidBest
         - RasterVector
         - RasterVectorBest
-      description: layer's type might be derived from the first letter
+      description: layer's type might be derived from the first letter  
     updateLayerMetadata:
       type: object
       description: layer meta data
@@ -29,12 +29,12 @@ components:
             - RECORD_3D
         classification:
           type: string
-          description: Permitted roles
+          description: Permitted roles 
         productId:
           type: string
           description: Layer's external identifier
           pattern: ^[a-zA-Z0-9_-]+$
-        productName:
+        productName: 
           type: string
           description: Layer's external name
         productVersion:
@@ -46,7 +46,7 @@ components:
         productSubType:
           type: string
           description: Layer's sub type
-        description:
+        description: 
           type: string
           description: layer's description
         srsId:
@@ -79,7 +79,7 @@ components:
           minimum: 0.00000009
           maximum: 0.072
           format: double
-          description: max resolution of layer in degrees/pixel
+          description:  max resolution of layer in degrees/pixel
         maxResolutionMeter:
           type: number
           minimum: 0.01
@@ -96,7 +96,7 @@ components:
           type: array
           items:
             type: string
-          description: Layer sensors list
+          description: Layer sensors list 
         region:
           type: array
           items:
@@ -117,12 +117,12 @@ components:
         productBoundingBox:
           type: string
           pattern: "^-?(0|[1-9]\\d*)(\\.\\d*)?,-?(0|[1-9]\\d*)(\\.\\d*)?,-?(0|[1-9]\\d*)(\\.\\d*)?,-?(0|[1-9]\\d*)(\\.\\d*)?$"
-
+          
     updateStatusLayerMetadata:
       type: object
       description: Metadata for layer status
       allOf:
-        - $ref: '#/components/schemas/updateLayerMetadata'
+        - $ref: "#/components/schemas/updateLayerMetadata"
         - properties:
             ingestionStartDate:
               type: string

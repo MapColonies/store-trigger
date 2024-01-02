@@ -1,4 +1,4 @@
-openapi: '3.0.1'
+openapi: "3.0.1"
 info:
   title: raster catalog insert request
   version: 1.0.0
@@ -11,7 +11,7 @@ components:
         - metadata
         - links
       allOf:
-        - $ref: './updateRequest.yaml#/components/schemas/UpdateRequest'
+        - $ref: "./updateRequest.yaml#/components/schemas/UpdateRequest"
         - properties:
             metadata:
               $ref: ../insertLayerMetadata.yaml#/components/schemas/insertLayerMetadata

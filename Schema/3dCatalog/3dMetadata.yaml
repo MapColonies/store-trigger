@@ -115,8 +115,8 @@ components:
           items:
             type: string
           minItems: 1
-          description: Layer sensors list
-          example: ['OTHER']
+          description: Layer sensors list 
+          example: ["OTHER"]
         footprint:
           allOf:
             - $ref: ../geojson.yaml#/components/schemas/Geometry
@@ -295,8 +295,8 @@ components:
           items:
             type: string
           minItems: 1
-          description: Layer sensors list
-          example: ['OTHER']
+          description: Layer sensors list 
+          example: ["OTHER"]
         footprint:
           allOf:
             - $ref: ../geojson.yaml#/components/schemas/Geometry
@@ -479,8 +479,8 @@ components:
           items:
             type: string
           minItems: 1
-          description: Layer sensors list
-          example: ['OTHER']
+          description: Layer sensors list 
+          example: ["OTHER"]
         footprint:
           allOf:
             - $ref: ../geojson.yaml#/components/schemas/Geometry
@@ -559,11 +559,11 @@ components:
           items:
             $ref: ../link.yaml#/components/schemas/Link
       additionalProperties: false
-    metadata:
+    metadata:  
       type: object
       description: 3d tiles catalog metadata payload
       allOf:
-        - $ref: '#/components/schemas/catalog-payload'
+        - $ref: "#/components/schemas/catalog-payload"
         - properties:
             productBoundingBox:
               type: string
@@ -701,7 +701,7 @@ components:
       type: object
       description: 3d update status of record
       required:
-        - 'productStatus'
+        - "productStatus"
       properties:
         productStatus:
           type: string
@@ -709,3 +709,4 @@ components:
           pattern: '^(UNPUBLISHED|PUBLISHED)$'
           description: The status of the model
       additionalProperties: false
+          
