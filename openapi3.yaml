@@ -6,35 +6,12 @@ info:
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-
 paths:
-  /jobStatus/{jobID}:
-    get:
-      operationId: getJobStatus
-      tags:
-        - jobStatus
-      summary: gets the resource
-      parameters:
-        - $ref: '#/components/parameters/jobID'
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/jobStatus'
-        404:
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-
-  /ingestion:
+  /jobs/ingestion:
     post:
       operationId: createModel
       tags:
-        - ingestion
+        - jobs
       summary: creates a new job and invokes a new model ingestion flow
       requestBody:
         content:
@@ -42,19 +19,49 @@ paths:
             schema:
               $ref: '#/components/schemas/payload'
       responses:
-        201:
+        '201':
           description: created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/createResponse'
-        400:
+        '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-        '5XX':
+        5XX:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /jobs/delete:
+    post:
+      operationId: deleteModel
+      tags:
+        - jobs
+      summary: creates a new delete job and invokes a model deleting flow
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/delete-request'
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        5XX:
           description: Unexpected Error
           content:
             application/json:
@@ -89,17 +96,17 @@ components:
         modelId:
           type: string
           description: Model identifier
-          example: 'a2234fdf'
+          example: a2234fdf
         pathToTileset:
           type: string
           description: path to tileset
-          example: 'NewYork'
+          example: NewYork
         tilesetFilename:
           type: string
           description: Model tileset filename
-          example: 'tileset.json'
+          example: tileset.json
         metadata:
-          $ref: './Schema/3dCatalog/3dMetadata.yaml#/components/schemas/ingestion-payload'
+          $ref: '#/components/schemas/ingestion-payload'
       additionalProperties: false
     createResponse:
       type: object
@@ -141,3 +148,326 @@ components:
             - Failed
             - Expired
             - Aborted
+    GeometryBase:
+      type: object
+      description: GeoJSon geometry
+      required:
+        - type
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#geometry-objects
+      properties:
+        type:
+          type: string
+          enum:
+            - Point
+            - LineString
+            - Polygon
+            - MultiPoint
+            - MultiLineString
+            - MultiPolygon
+          description: the geometry type
+    Point2D:
+      type: array
+      maxItems: 2
+      minItems: 2
+      items:
+        type: number
+        minimum: -180
+        maximum: 180
+    Point:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id2
+      allOf:
+        - $ref: '#/components/schemas/GeometryBase'
+        - properties:
+            coordinates:
+              $ref: '#/components/schemas/Point2D'
+    LineString:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id3
+      allOf:
+        - $ref: '#/components/schemas/GeometryBase'
+        - properties:
+            coordinates:
+              type: array
+              items:
+                $ref: '#/components/schemas/Point2D'
+    Polygon:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id4
+      allOf:
+        - $ref: '#/components/schemas/GeometryBase'
+        - properties:
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Point2D'
+    MultiPoint:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id5
+      allOf:
+        - $ref: '#/components/schemas/GeometryBase'
+        - properties:
+            coordinates:
+              type: array
+              items:
+                $ref: '#/components/schemas/Point2D'
+    MultiLineString:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id6
+      allOf:
+        - $ref: '#/components/schemas/GeometryBase'
+        - properties:
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Point2D'
+    MultiPolygon:
+      type: object
+      description: GeoJSon geometry
+      externalDocs:
+        url: http://geojson.org/geojson-spec.html#id6
+      allOf:
+        - $ref: '#/components/schemas/GeometryBase'
+        - properties:
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Point2D'
+    Geometry:
+      description: GeoJSon geometry
+      discriminator:
+        propertyName: type
+      type: object
+      anyOf:
+        - $ref: '#/components/schemas/Point'
+        - $ref: '#/components/schemas/LineString'
+        - $ref: '#/components/schemas/Polygon'
+        - $ref: '#/components/schemas/MultiPoint'
+        - $ref: '#/components/schemas/MultiLineString'
+        - $ref: '#/components/schemas/MultiPolygon'
+    delete-request:
+      type: object
+      description: 3d tiles delete requestBody
+      required:
+        - modelName
+        - modelId
+        - pathToTileset
+      properties:
+        modelId:
+          type: string
+          nullable: true
+          default: null
+          example: a2234fdf
+          description: ID of product
+        modelName:
+          type: string
+          maxLength: 50
+          description: Name of product
+        pathToTileset:
+          type: string
+          description: path to tileset
+          example: NewYork
+    ingestion-payload:
+      type: object
+      description: 3d tiles ingestion payload
+      required:
+        - productName
+        - productType
+        - sourceDateStart
+        - sourceDateEnd
+        - maxAccuracyCE90
+        - absoluteAccuracyLE90
+        - sensors
+        - footprint
+        - srsId
+        - srsName
+        - region
+        - classification
+        - productionSystem
+        - productionSystemVer
+        - producerName
+        - productSource
+      properties:
+        type:
+          type: string
+          nullable: true
+          default: RECORD_3D
+          description: Type of records
+        productId:
+          type: string
+          nullable: true
+          default: null
+          description: ID of product
+        productName:
+          type: string
+          maxLength: 50
+          description: Name of product
+        productType:
+          type: string
+          description: Type of product (3DPhotoRealistic)
+          example: 3DPhotoRealistic
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: description and comments
+        creationDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Creation date
+        sourceDateStart:
+          type: string
+          format: date-time
+          description: Oldest date of taken photo
+        sourceDateEnd:
+          type: string
+          format: date-time
+          description: Newest date of taken photo
+        minResolutionMeter:
+          type: number
+          format: double
+          nullable: true
+          example: 1.1
+          minimum: 0.01
+          maximum: 8000
+          description: Minimum resolution in meters
+        maxResolutionMeter:
+          type: number
+          format: double
+          nullable: true
+          example: 1.5
+          minimum: 0.01
+          maximum: 8000
+          description: Maximum resolution in meters
+        maxAccuracyCE90:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 999
+          description: Maximum absolute horizontal accuracy
+        absoluteAccuracyLE90:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 999
+          description: Absolute vertical accuracy
+        accuracySE90:
+          type: number
+          format: double
+          minimum: 0
+          nullable: true
+          maximum: 250
+          description: Absolute spherical accuracy
+        relativeAccuracySE90:
+          type: number
+          format: double
+          nullable: true
+          minimum: 0
+          maximum: 100
+          description: Relative vertical accuracy
+        visualAccuracy:
+          type: number
+          format: double
+          nullable: true
+          minimum: 0
+          maximum: 100
+          description: Measure of visual quality
+        sensors:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          description: Layer sensors list
+          example:
+            - OTHER
+        footprint:
+          allOf:
+            - $ref: '#/components/schemas/Geometry'
+            - description: Geographic demarkatetion of the product
+            - example: >-
+                {"type":"Polygon","coordinates":[[[1,2],[3,4],[5,6],[7,8],[1,2]]]}
+        heightRangeFrom:
+          type: number
+          format: double
+          nullable: true
+          description: Minimum height range of ground
+        heightRangeTo:
+          type: number
+          format: double
+          nullable: true
+          description: Maximum height range of ground
+        srsId:
+          type: string
+          example: 4326
+          description: ID of srs
+        srsName:
+          type: string
+          description: Name of the srsID
+          default: WGS84GEO
+        region:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          description: regions included in the layer
+        classification:
+          type: string
+          example: '5'
+          description: Classification of the product
+        productionSystem:
+          type: string
+          description: Production system
+        productionSystemVer:
+          type: string
+          maxLength: 20
+          description: Version production system
+        producerName:
+          type: string
+          description: The name of the producer (product owner)
+          default: IDFMU
+        minFlightAlt:
+          type: number
+          format: double
+          description: Minimum height of the flight
+        maxFlightAlt:
+          type: number
+          nullable: true
+          format: double
+          description: Maximum height of the flight
+        geographicArea:
+          type: string
+          nullable: true
+          description: Area inside the region
+        productStatus:
+          type: string
+          pattern: ^(UNPUBLISHED|PUBLISHED)$
+          default: UNPUBLISHED
+          description: The status of the model
+        productSource:
+          type: string
+          description: The path of the model
+        keywords:
+          type: string
+          nullable: true
+          description: The keywords of the product
+      additionalProperties: false

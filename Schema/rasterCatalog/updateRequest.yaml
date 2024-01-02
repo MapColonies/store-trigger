@@ -1,0 +1,20 @@
+openapi: '3.0.1'
+info:
+  title: raster catalog update request
+  version: 1.0.0
+components:
+  schemas:
+    UpdateRequest:
+      type: object
+      description: raster catalog update request
+      properties:
+        metadata:
+          $ref: ../updateLayerMetadata.yaml#/components/schemas/updateLayerMetadata
+        links:
+          type: array
+          items:
+            $ref: ../link.yaml#/components/schemas/Link
+
+      #due to bug in validator additional properties is not compilable with allof
+      #https://github.com/cdimascio/express-openapi-validator/issues/239
+      #additionalProperties: false

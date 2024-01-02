@@ -64,7 +64,7 @@ export interface ProviderManager {
   delete: S3Provider | NFSProvider;
 }
 export interface S3Config {
-  type: "S3"
+  type: 'S3';
   accessKeyId: string;
   secretAccessKey: string;
   endpointUrl: string;
@@ -78,7 +78,7 @@ export interface S3Config {
 }
 
 export interface NFSConfig {
-  type: 'NFS'
+  type: 'NFS';
   pvPath: string;
 }
 
@@ -99,5 +99,5 @@ export interface JobTypes {
   delete: string;
 }
 
-export type CreateJobBody = ICreateJobBody<IngestionJobParameters, TaskParameters>;
+export type IngestionJobBody = ICreateJobBody<IngestionJobParameters, TaskParameters>;
 export type DeleteJobBody = ICreateJobBody<DeleteJobParameters, TaskParameters>;

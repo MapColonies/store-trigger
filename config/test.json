@@ -7,7 +7,7 @@
     "region": "us-east-1",
     "forcePathStyle": true,
     "sslEnabled": false,
-    "maxAttempts": 3
+    "maxAttempts": 4
   },
   "NFS": {
     "pvPath": "./tests/helpers/3DModels"
@@ -25,10 +25,21 @@
       "region": "us-east-1",
       "forcePathStyle": true,
       "sslEnabled": false,
-      "maxAttempts": 3
+      "maxAttempts": 3,
+      "sigVersion": "v4",
+      "storageClass": "STANDARD"
     },
     "delete": {
-      "pvPath": "./tests/helpers/3DModels"
+      "accessKeyId": "minioadmin",
+      "secretAccessKey": "minioadmin",
+      "endpointUrl": "http://127.0.0.1:9000",
+      "bucket": "test",
+      "region": "us-east-1",
+      "forcePathStyle": true,
+      "sslEnabled": false,
+      "maxAttempts": 3,
+      "sigVersion": "v4",
+      "storageClass": "STANDARD"
     }
   },
   "jobManager": {

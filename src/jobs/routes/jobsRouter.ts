@@ -6,8 +6,8 @@ const jobsRouterFactory: FactoryFunction<Router> = (dependencyContainer) => {
   const router = Router();
   const controller = dependencyContainer.resolve(JobsController);
 
-  router.post('/jobs/ingestion', controller.create);
-  router.delete('/jobs/delete', controller.delete);
+  router.post('/ingestion', controller.create);
+  router.post('/delete', controller.delete);
 
   return router;
 };

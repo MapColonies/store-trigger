@@ -1,0 +1,27 @@
+openapi: '3.0.1'
+info:
+  title: raster catalog insert request
+  version: 1.0.0
+components:
+  schemas:
+    InsertRequest:
+      type: object
+      description: raster catalog insert request
+      required:
+        - metadata
+        - links
+      allOf:
+        - $ref: './updateRequest.yaml#/components/schemas/UpdateRequest'
+        - properties:
+            metadata:
+              $ref: ../insertLayerMetadata.yaml#/components/schemas/insertLayerMetadata
+        - properties:
+            metadata:
+              required:
+                - id
+                - displayPath
+                - tileOutputFormat
+                - tileMimeFormat
+      #due to bug in validator additional properties is not compilable with allof
+      #https://github.com/cdimascio/express-openapi-validator/issues/239
+      #additionalProperties: false

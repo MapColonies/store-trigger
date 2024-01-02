@@ -3,7 +3,7 @@ import { ICreateTaskBody, JobManagerClient, OperationStatus } from '@map-colonie
 import { inject, injectable } from 'tsyringe';
 import { JOB_TYPE, SERVICES } from '../../common/constants';
 import {
-  CreateJobBody,
+  IngestionJobBody,
   IConfig,
   JobsResponse,
   IngestionJobParameters,
@@ -34,7 +34,7 @@ export class JobsManager {
   }
 
   public async createIngestionJob(payload: IngestionPayload): Promise<JobsResponse> {
-    const job: CreateJobBody = {
+    const job: IngestionJobBody = {
       resourceId: payload.modelId,
       version: '1',
       type: JOB_TYPE.ingestion,

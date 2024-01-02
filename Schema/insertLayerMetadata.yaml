@@ -1,0 +1,33 @@
+openapi: '3.0.1'
+info:
+  title: Layer metadata definitions
+  version: 2.0.0
+components:
+  schemas:
+    insertLayerMetadata:
+      type: object
+      required:
+        - productId
+        - productName
+        - productVersion
+        - productType
+        - maxResolutionDeg
+        - minHorizontalAccuracyCE90
+        - sensors
+        - footprint
+        - type
+        - sourceDateStart
+        - sourceDateEnd
+        - classification
+        - transparency
+      allOf:
+        - $ref: ./fullLayerMetadata.yaml#/components/schemas/fullLayerMetadata
+
+    insertStatusLayerMetadata:
+      type: object
+      required:
+        - ingestionStartDate
+        - ingestionEndDate
+        - layerTileLocation
+      allOf:
+        - $ref: ./updateLayerMetadata.yaml#/components/schemas/updateStatusLayerMetadata

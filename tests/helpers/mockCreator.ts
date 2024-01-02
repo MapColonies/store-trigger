@@ -4,13 +4,16 @@ import { Polygon } from 'geojson';
 import { Layer3DMetadata, ProductType, RecordStatus, RecordType } from '@map-colonies/mc-model-types';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import {
-  CreateJobBody,
+  IngestionJobBody,
+  DeleteJobParameters,
+  DeletePayload,
   IngestionJobParameters as IngestionJobParameters,
   IngestionPayload,
   NFSConfig,
   ProviderConfig,
   ProvidersConfig,
   S3Config,
+  DeleteJobBody,
 } from '../../src/common/interfaces';
 
 const maxResolutionMeter = 8000;
@@ -125,6 +128,15 @@ export const createIngestionJobParameters = (): IngestionJobParameters => {
   };
 };
 
+export const createDeleteJobParameters = (): DeleteJobParameters => {
+  return {
+    modelId: createUuid(),
+    pathToTileset: 'path/to/tileset',
+    filesCount: 0,
+    modelName: randWord(),
+  };
+};
+
 export const createIngestionPayload = (modelName: string): IngestionPayload => {
   return {
     modelId: createUuid(),
@@ -134,16 +146,36 @@ export const createIngestionPayload = (modelName: string): IngestionPayload => {
   };
 };
 
-export const ingestionJobPayload = (payload: IngestionPayload): CreateJobBody => {
+export const createDeletePayload = (modelName: string): DeletePayload => {
+  return {
+    modelId: createUuid(),
+    modelName: modelName,
+    pathToTileset: 'path/to/tileset',
+  };
+};
+
+export const createIngestionJobBody = (payload: IngestionPayload): IngestionJobBody => {
   return {
     resourceId: payload.modelId,
     version: '1',
-    type: config.get<string>('jobManager.job.type'),
+    type: config.get<string>('jobManager.job.type.ingestion'),
     parameters: createIngestionJobParameters(),
     productType: payload.metadata.productType,
     productName: payload.metadata.productName,
     percentage: 0,
     producerName: payload.metadata.producerName,
+    status: OperationStatus.PENDING,
+    domain: '3D',
+  };
+};
+
+export const createDeleteJobBody = (payload: DeletePayload): DeleteJobBody => {
+  return {
+    resourceId: payload.modelId,
+    version: '1',
+    type: config.get<string>('jobManager.job.type.delete'),
+    parameters: createDeleteJobParameters(),
+    percentage: 0,
     status: OperationStatus.PENDING,
     domain: '3D',
   };

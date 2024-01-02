@@ -1,0 +1,25 @@
+openapi: '3.0.1'
+info:
+  title: link model
+  version: 1.0.0
+components:
+  schemas:
+    Link:
+      type: object
+      description: layer meta data
+      required:
+        - protocol
+        - url
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        protocol:
+          type: string
+          description: link applicative protocol (WMS, WMTS, TMS, XYZ, etc...)
+        url:
+          type: string
+          description: link url template
+          pattern: '^https?:\/\/.*$'
+      additionalProperties: false

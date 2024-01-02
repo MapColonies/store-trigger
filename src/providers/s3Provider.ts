@@ -4,8 +4,8 @@ import httpStatus from 'http-status-codes';
 import { inject, injectable } from 'tsyringe';
 import { QueueFileHandler } from '../handlers/queueFileHandler';
 import { AppError } from '../common/appError';
-import { SERVICES } from '../common/constants';
 import { Provider, S3Config } from '../common/interfaces';
+import { SERVICES } from '../common/constants';
 
 @injectable()
 export class S3Provider implements Provider {
@@ -13,18 +13,18 @@ export class S3Provider implements Provider {
   private filesCount: number;
 
   public constructor(
-    @inject(SERVICES.PROVIDER_CONFIG) protected readonly s3Config: S3Config,
+    protected readonly config: S3Config,
     @inject(SERVICES.LOGGER) protected readonly logger: Logger,
-    @inject(SERVICES.QUEUE_FILE_HANDLER) protected readonly queueFileHandler: QueueFileHandler
+    protected readonly queueFileHandler: QueueFileHandler
   ) {
     const s3ClientConfig: S3ClientConfig = {
-      endpoint: this.s3Config.endpointUrl,
-      forcePathStyle: this.s3Config.forcePathStyle,
+      endpoint: this.config.endpointUrl,
+      forcePathStyle: this.config.forcePathStyle,
       credentials: {
-        accessKeyId: this.s3Config.accessKeyId,
-        secretAccessKey: this.s3Config.secretAccessKey,
+        accessKeyId: this.config.accessKeyId,
+        secretAccessKey: this.config.secretAccessKey,
       },
-      region: this.s3Config.region,
+      region: this.config.region,
     };
 
     this.s3 = new S3Client(s3ClientConfig);
@@ -34,7 +34,7 @@ export class S3Provider implements Provider {
   public async streamModelPathsToQueueFile(modelId: string, pathToTileset: string, modelName: string): Promise<number> {
     /* eslint-disable @typescript-eslint/naming-convention */
     const params: ListObjectsRequest = {
-      Bucket: this.s3Config.bucket,
+      Bucket: this.config.bucket,
       Delimiter: '/',
       Prefix: pathToTileset + '/',
     };
@@ -42,7 +42,7 @@ export class S3Provider implements Provider {
     await this.listS3Recursively(modelId, params);
 
     if (await this.queueFileHandler.checkIfTempFileEmpty(modelId)) {
-      throw new AppError(httpStatus.NOT_FOUND, `Model ${modelName} doesn't exists in bucket ${this.s3Config.bucket}! Path: ${pathToTileset}`, true);
+      throw new AppError(httpStatus.NOT_FOUND, `Model ${modelName} doesn't exists in bucket ${this.config.bucket}! Path: ${pathToTileset}`, true);
     }
 
     this.logger.info({ msg: 'Finished listing the files', filesCount: this.filesCount, modelName, modelId });
@@ -67,7 +67,7 @@ export class S3Provider implements Provider {
 
       if (data.IsTruncated === true) {
         const nextParams: ListObjectsRequest = {
-          Bucket: this.s3Config.bucket,
+          Bucket: this.config.bucket,
           Delimiter: '/',
           Prefix: data.Prefix,
           Marker: data.NextMarker,
@@ -78,7 +78,7 @@ export class S3Provider implements Provider {
       this.logger.debug({ msg: `Listed ${this.filesCount} files`, modelId });
     } catch (error) {
       this.logger.error({ msg: 'failed in listing the model', modelId, error });
-      this.handleS3Error(this.s3Config.bucket, error);
+      this.handleS3Error(this.config.bucket, error);
     }
   }
 
@@ -96,7 +96,7 @@ export class S3Provider implements Provider {
     for (const commonPrefix of CommonPrefixes) {
       if (commonPrefix.Prefix != undefined) {
         const nextParams: ListObjectsRequest = {
-          Bucket: this.s3Config.bucket,
+          Bucket: this.config.bucket,
           Delimiter: '/',
           Prefix: commonPrefix.Prefix,
         };
