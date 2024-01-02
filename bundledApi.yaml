@@ -68,14 +68,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 components:
-  parameters:
-    jobID:
-      in: path
-      name: jobID
-      required: true
-      schema:
-        type: string
-      description: The jobID for status check
   schemas:
     error:
       type: object
@@ -127,27 +119,6 @@ components:
         jobId:
           type: string
           description: job id
-    jobStatus:
-      type: object
-      description: The job response
-      required:
-        - status
-        - percentage
-      properties:
-        percentage:
-          type: number
-          minimum: 0
-          maximum: 100
-          description: percentage of task by job id
-        status:
-          type: string
-          enum:
-            - Completed
-            - In-Progress
-            - Pending
-            - Failed
-            - Expired
-            - Aborted
     GeometryBase:
       type: object
       description: GeoJSon geometry
