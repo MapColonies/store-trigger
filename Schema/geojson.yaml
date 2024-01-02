@@ -1,4 +1,4 @@
-openapi: "3.0.1"
+openapi: '3.0.1'
 info:
   title: Geojson definitions
   version: 1.0.0
@@ -22,11 +22,11 @@ components:
             - MultiLineString
             - MultiPolygon
           description: the geometry type
-          
+
     Geometry:
       description: GeoJSon geometry
       discriminator:
-          propertyName: type
+        propertyName: type
       type: object
       anyOf:
         - $ref: '#/components/schemas/Point'
@@ -35,7 +35,7 @@ components:
         - $ref: '#/components/schemas/MultiPoint'
         - $ref: '#/components/schemas/MultiLineString'
         - $ref: '#/components/schemas/MultiPolygon'
-  
+
     Point2D:
       type: array
       maxItems: 2
@@ -44,81 +44,81 @@ components:
         type: number
         minimum: -180
         maximum: 180
-  
+
     Point:
       type: object
       description: GeoJSon geometry
       externalDocs:
         url: http://geojson.org/geojson-spec.html#id2
       allOf:
-        - $ref: "#/components/schemas/GeometryBase"
+        - $ref: '#/components/schemas/GeometryBase'
         - properties:
             coordinates:
-              $ref: "#/components/schemas/Point2D"
-  
+              $ref: '#/components/schemas/Point2D'
+
     LineString:
       type: object
       description: GeoJSon geometry
       externalDocs:
         url: http://geojson.org/geojson-spec.html#id3
       allOf:
-        - $ref: "#/components/schemas/GeometryBase"
+        - $ref: '#/components/schemas/GeometryBase'
         - properties:
             coordinates:
               type: array
               items:
-                $ref: "#/components/schemas/Point2D"
-  
+                $ref: '#/components/schemas/Point2D'
+
     Polygon:
       type: object
       description: GeoJSon geometry
       externalDocs:
         url: http://geojson.org/geojson-spec.html#id4
       allOf:
-        - $ref: "#/components/schemas/GeometryBase"
+        - $ref: '#/components/schemas/GeometryBase'
         - properties:
             coordinates:
               type: array
               items:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Point2D"
-  
+                  $ref: '#/components/schemas/Point2D'
+
     MultiPoint:
       type: object
       description: GeoJSon geometry
       externalDocs:
         url: http://geojson.org/geojson-spec.html#id5
       allOf:
-        - $ref: "#/components/schemas/GeometryBase"
+        - $ref: '#/components/schemas/GeometryBase'
         - properties:
             coordinates:
               type: array
               items:
-                $ref: "#/components/schemas/Point2D"
-  
+                $ref: '#/components/schemas/Point2D'
+
     MultiLineString:
       type: object
       description: GeoJSon geometry
       externalDocs:
         url: http://geojson.org/geojson-spec.html#id6
       allOf:
-        - $ref: "#/components/schemas/GeometryBase"
+        - $ref: '#/components/schemas/GeometryBase'
         - properties:
             coordinates:
               type: array
               items:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Point2D"
-  
+                  $ref: '#/components/schemas/Point2D'
+
     MultiPolygon:
       type: object
       description: GeoJSon geometry
       externalDocs:
         url: http://geojson.org/geojson-spec.html#id6
       allOf:
-        - $ref: "#/components/schemas/GeometryBase"
+        - $ref: '#/components/schemas/GeometryBase'
         - properties:
             coordinates:
               type: array
@@ -127,8 +127,8 @@ components:
                 items:
                   type: array
                   items:
-                    $ref: "#/components/schemas/Point2D"
-  
+                    $ref: '#/components/schemas/Point2D'
+
     GeometryCollection:
       type: object
       description: GeoJSon geometry collection
@@ -146,14 +146,14 @@ components:
         geometries:
           type: array
           items:
-            $ref: "#/components/schemas/GeometryBase"
+            $ref: '#/components/schemas/GeometryBase'
 
     BBox:
       type: array
       minItems: 4
       items:
         type: number
-    
+
     Feature:
       required:
         - type
@@ -162,7 +162,7 @@ components:
       properties:
         type:
           type: string
-          enum: 
+          enum:
             - Feature
         properties:
           type: object
@@ -171,10 +171,10 @@ components:
           type: object
           nullable: true
           oneOf:
-            - $ref: "#/components/schemas/GeometryCollection"
-            - $ref: "#/components/schemas/Geometry"
+            - $ref: '#/components/schemas/GeometryCollection'
+            - $ref: '#/components/schemas/Geometry'
         bbox:
-          $ref: "#/components/schemas/BBox"
+          $ref: '#/components/schemas/BBox'
 
     FeatureCollection:
       type: object
@@ -190,6 +190,6 @@ components:
         features:
           type: array
           items:
-            $ref: "#/components/schemas/Feature"
+            $ref: '#/components/schemas/Feature'
         bbox:
-          $ref: "#/components/schemas/BBox"
+          $ref: '#/components/schemas/BBox'

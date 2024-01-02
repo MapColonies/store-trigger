@@ -1,4 +1,4 @@
-openapi: "3.0.1"
+openapi: '3.0.1'
 info:
   title: Full Layer metadata definitions
   version: 2.0.0
@@ -17,18 +17,18 @@ components:
             transparency:
               type: string
               enum:
-              - TRANSPARENT
-              - OPAQUE
+                - TRANSPARENT
+                - OPAQUE
               description: layer can be transparent or opaque
             tileOutputFormat:
               type: string
               enum:
-              - PNG
-              - JPEG
+                - PNG
+                - JPEG
               description: Tile format can be of png or jpeg
             tileMimeFormat:
               type: string
               enum:
-              - image/png
-              - image/jpeg
+                - image/png
+                - image/jpeg
               description: Image format associated with content type (mime)

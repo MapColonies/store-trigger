@@ -1,4 +1,4 @@
-openapi: "3.0.1"
+openapi: '3.0.1'
 info:
   title: link model
   version: 1.0.0
@@ -23,4 +23,3 @@ components:
           description: link url template
           pattern: '^https?:\/\/.*$'
       additionalProperties: false
-
