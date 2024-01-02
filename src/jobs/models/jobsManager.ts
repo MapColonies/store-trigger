@@ -195,7 +195,6 @@ export class JobsManager {
       data = this.queueFileHandler.readline(modelId);
     }
 
-    // Create task from the rest of the last chunk
     if (chunk.length > 0) {
       const task = this.buildTaskFromChunk(chunk, modelId);
       tasks.push(task);
