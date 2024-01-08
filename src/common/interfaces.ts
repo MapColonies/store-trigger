@@ -1,6 +1,5 @@
 import { Layer3DMetadata } from '@map-colonies/mc-model-types';
 import { ICreateJobBody, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { StorageClass } from '@aws-sdk/client-s3';
 import { S3Provider } from '../providers/s3Provider';
 import { NFSProvider } from '../providers/nfsProvider';
 
@@ -25,8 +24,8 @@ export interface IngestionPayload {
 
 export interface DeletePayload {
   modelId: string;
-  modelName: string;
   pathToTileset: string;
+  modelName: string;
 }
 
 export interface Provider {
@@ -67,14 +66,13 @@ export interface S3Config {
   type: 'S3';
   accessKeyId: string;
   secretAccessKey: string;
-  endpointUrl: string;
+  endPointUrl: string;
   bucket: string;
   region: string;
-  tls: boolean;
   forcePathStyle: boolean;
+  tls: boolean;
   maxAttempts: number;
   sigVersion: string;
-  storageClass?: StorageClass;
 }
 
 export interface NFSConfig {

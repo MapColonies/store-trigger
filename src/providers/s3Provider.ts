@@ -18,7 +18,7 @@ export class S3Provider implements Provider {
     protected readonly queueFileHandler: QueueFileHandler
   ) {
     const s3ClientConfig: S3ClientConfig = {
-      endpoint: this.config.endpointUrl,
+      endpoint: this.config.endPointUrl,
       forcePathStyle: this.config.forcePathStyle,
       credentials: {
         accessKeyId: this.config.accessKeyId,

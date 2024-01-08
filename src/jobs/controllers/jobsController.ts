@@ -27,7 +27,7 @@ export class JobsController {
     const payload: IngestionPayload = req.body;
     try {
       const jobCreated = await this.manager.createIngestionJob(payload);
-      this.logger.debug({ msg: `Job created payload`, modelId: payload.modelId, payload, modelName: payload.metadata.productName });
+      this.logger.debug({ msg: `Job ingest payload`, modelId: payload.modelId, payload, modelName: payload.metadata.productName });
       res.status(httpStatus.CREATED).json(jobCreated);
       await this.manager.ingestModel(payload, jobCreated.jobID);
       this.createdResourceCounter.add(1);
@@ -47,7 +47,7 @@ export class JobsController {
     const payload: DeletePayload = req.body;
     try {
       const jobCreated = await this.manager.createDeleteJob(payload);
-      this.logger.debug({ msg: `Job created payload`, modelId: payload.modelId, payload, pathToTileset: payload.pathToTileset });
+      this.logger.debug({ msg: `Job delete payload`, modelId: payload.modelId, payload, pathToTileset: payload.pathToTileset });
       res.status(httpStatus.CREATED).json(jobCreated);
       await this.manager.deleteModel(payload, jobCreated.jobID);
       this.createdResourceCounter.add(1);

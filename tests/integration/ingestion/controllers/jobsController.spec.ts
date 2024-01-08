@@ -158,7 +158,7 @@ describe('ingestModel NFS', function () {
 
     describe('DELETE /delete', function () {
       describe('Happy Path 🙂', function () {
-        it('should return 201 status code and the added model', async function () {
+        it('should return 201 status code and the deleted model', async function () {
           const payload = createDeletePayload('model1');
           const jobId = createUuid();
           jobManagerClientMock.createJob.mockResolvedValueOnce({ id: jobId });
@@ -217,7 +217,7 @@ describe('ingestModel NFS', function () {
 
     describe('DELETE /delete', function () {
       describe('Happy Path 🙂', function () {
-        it('should return 201 status code and the added model', async function () {
+        it('should return 201 status code and the deleted model', async function () {
           const payload = createDeletePayload('model1');
           const jobId = '1';
           jobManagerClientMock.createJob.mockResolvedValueOnce({ id: jobId });

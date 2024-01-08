@@ -39,43 +39,72 @@
       }
     }
   },
-  "S3": {
-    "accessKeyId": "S3_SOURCE_ACCESS_KEY_ID",
-    "secretAccessKey": "S3_SOURCE_SECRET_ACCESS_KEY",
-    "endpointUrl": "S3_SOURCE_END_POINT_URL",
-    "bucket": "S3_SOURCE_BUCKET",
-    "region": "S3_SOURCE_REGION",
-    "forcePathStyle": {
-      "__name": "S3_SOURCE_FORCE_PATH_STYLE",
-      "__format": "boolean"
-    },
-    "sslEnabled": {
-      "__name": "S3_SOURCE_SSL_ENABLED",
-      "__format": "boolean"
-    },
-    "maxAttempts": {
-      "__name": "S3_SOURCE_MAX_ATTEMPTS",
-      "__format": "number"
-    }
-  },
-  "NFS": {
-    "pvPath": "PV_SOURCE_PATH"
-  },
   "ingestion": {
-    "provider": "PROVIDER_FROM",
     "blackList": "BLACK_LIST"
+  },
+  "provider": {
+    "ingestion": {
+      "type": "PROVIDER_FROM",
+      "accessKeyId": "S3_SOURCE_ACCESS_KEY_ID",
+      "secretAccessKey": "S3_SOURCE_SECRET_ACCESS_KEY",
+      "endpointUrl": "S3_SOURCE_END_POINT_URL",
+      "bucket": "S3_SOURCE_BUCKET",
+      "region": "S3_SOURCE_REGION",
+      "forcePathStyle": {
+        "__name": "S3_SOURCE_FORCE_PATH_STYLE",
+        "__format": "boolean"
+      },
+      "sslEnabled": {
+        "__name": "S3_SOURCE_SSL_ENABLED",
+        "__format": "boolean"
+      },
+      "maxAttempts": {
+        "__name": "S3_SOURCE_MAX_ATTEMPTS",
+        "__format": "number"
+      },
+      "sigVersion": "S3_SOURCE_SIG_VERSION",
+      "pvPath": "PV_SOURCE_PATH"
+    },
+    "delete": {
+      "type": "PROVIDER_TO",
+      "accessKeyId": "S3_DEST_ACCESS_KEY_ID",
+      "secretAccessKey": "S3_DEST_SECRET_ACCESS_KEY",
+      "endpointUrl": "S3_DEST_END_POINT_URL",
+      "bucket": "S3_DEST_BUCKET",
+      "region": "S3_DEST_REGION",
+      "forcePathStyle": {
+        "__name": "S3_DEST_FORCE_PATH_STYLE",
+        "__format": "boolean"
+      },
+      "sslEnabled": {
+        "__name": "S3_DEST_SSL_ENABLED",
+        "__format": "boolean"
+      },
+      "maxAttempts": {
+        "__name": "S3_DEST_MAX_ATTEMPTS",
+        "__format": "number"
+      },
+      "sigVersion": "S3_DEST_SIG_VERSION",
+      "pvPath": "PV_DEST_PATH"
+    }
   },
   "jobManager": {
     "url": "JOB_MANAGER_URL",
     "job": {
-      "type": "JOB_TYPE"
+      "type": {
+        "ingestion": "INGESTION_JOB",
+        "delete": "DELETE_JOB"
+      }
     },
     "task": {
       "batches": {
         "__name": "TASK_BATCHES",
         "__format": "number"
       },
-      "type": "TASK_TYPE"
+      "type": {
+        "ingestion": "INGESTION_TASK",
+        "delete": "DELETE_TASK"
+      }
     }
   },
   "maxConcurrency": "MAX_CONCURRENCY"

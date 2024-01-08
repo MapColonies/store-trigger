@@ -1,7 +1,7 @@
 import { Logger } from '@map-colonies/js-logger';
 import { ICreateTaskBody, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
-import { JOB_TYPE, SERVICES } from '../../common/constants';
+import { JOB_TYPE, SERVICES, TASK_TYPE } from '../../common/constants';
 import {
   IngestionJobBody,
   IConfig,
@@ -98,6 +98,7 @@ export class JobsManager {
 
     this.logger.debug({ msg: 'Starts writing content to queue file', modelId: payload.modelId, modelName: payload.metadata.productName });
     await this.queueFileHandler.createQueueFile(payload.modelId);
+    const type = TASK_TYPE.ingestion;
 
     try {
       const fileCount: number = await this.providerManager.ingestion.streamModelPathsToQueueFile(
@@ -111,7 +112,7 @@ export class JobsManager {
         modelName: payload.metadata.productName,
       });
 
-      const tasks = this.createTasks(this.batchSize, payload.modelId);
+      const tasks = this.createTasks(this.batchSize, payload.modelId, type);
       this.logger.info({ msg: 'Tasks created successfully', modelId: payload.modelId, modelName: payload.metadata.productName });
 
       await this.createTasksForJob(jobId, tasks, this.maxConcurrency);
@@ -130,18 +131,19 @@ export class JobsManager {
     this.logger.info({
       msg: 'Creating delete job for model',
       modelId: payload.modelId,
-      modelName: payload.modelName,
       pathToTileSet: payload.pathToTileset,
+      modelName: payload.modelName,
     });
 
     this.logger.debug({ msg: 'Starts writing content to queue file', modelId: payload.modelId, modelName: payload.modelName });
     await this.queueFileHandler.createQueueFile(payload.modelId);
+    const type = TASK_TYPE.delete;
 
     try {
       const fileCount: number = await this.providerManager.delete.streamModelPathsToQueueFile(
         payload.modelId,
-        payload.modelName,
-        payload.pathToTileset
+        payload.pathToTileset,
+        payload.modelName
       );
       this.logger.debug({
         msg: 'Finished writing content to queue file. Creating Tasks',
@@ -150,7 +152,7 @@ export class JobsManager {
         pathToTileSet: payload.pathToTileset,
       });
 
-      const tasks = this.createTasks(this.batchSize, payload.modelId);
+      const tasks = this.createTasks(this.batchSize, payload.modelId, type);
       this.logger.info({ msg: 'Tasks created successfully', modelId: payload.modelId, modelName: payload.modelName });
 
       await this.createTasksForJob(jobId, tasks, this.maxConcurrency);
@@ -159,7 +161,7 @@ export class JobsManager {
 
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
     } catch (error) {
-      this.logger.error({ msg: 'Failed in creating tasks', modelId: payload.modelId, pathToTileset: payload.pathToTileset, error });
+      this.logger.error({ msg: 'Failed in creating tasks', error, modelId: payload.modelId, pathToTileset: payload.pathToTileset });
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
       throw error;
     }
@@ -174,7 +176,7 @@ export class JobsManager {
     }
   }
 
-  private createTasks(batchSize: number, modelId: string): ICreateTaskBody<TaskParameters>[] {
+  private createTasks(batchSize: number, modelId: string, type: string): ICreateTaskBody<TaskParameters>[] {
     const tasks: ICreateTaskBody<TaskParameters>[] = [];
     let chunk: string[] = [];
     let data: string | null = this.queueFileHandler.readline(modelId);
@@ -186,7 +188,7 @@ export class JobsManager {
         chunk.push(data);
 
         if (chunk.length === batchSize) {
-          const task = this.buildTaskFromChunk(chunk, modelId);
+          const task = this.buildTaskFromChunk(chunk, modelId, type);
           tasks.push(task);
           chunk = [];
         }
@@ -196,16 +198,16 @@ export class JobsManager {
     }
 
     if (chunk.length > 0) {
-      const task = this.buildTaskFromChunk(chunk, modelId);
+      const task = this.buildTaskFromChunk(chunk, modelId, type);
       tasks.push(task);
     }
 
     return tasks;
   }
 
-  private buildTaskFromChunk(chunk: string[], modelId: string): ICreateTaskBody<TaskParameters> {
+  private buildTaskFromChunk(chunk: string[], modelId: string, type: string): ICreateTaskBody<TaskParameters> {
     const parameters: TaskParameters = { paths: chunk, modelId, lastIndexError: -1 };
-    return { parameters };
+    return { type, parameters };
   }
 
   private isFileInBlackList(data: string): boolean {

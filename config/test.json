@@ -1,45 +1,33 @@
 {
-  "S3": {
-    "accessKeyId": "minioadmin",
-    "secretAccessKey": "minioadmin",
-    "endpointUrl": "http://127.0.0.1:9000",
-    "bucket": "test",
-    "region": "us-east-1",
-    "forcePathStyle": true,
-    "sslEnabled": false,
-    "maxAttempts": 4
-  },
-  "NFS": {
-    "pvPath": "./tests/helpers/3DModels"
-  },
   "ingestion": {
-    "provider": "NFS",
     "blackList": ["tar", "zip", "rar", "7z"]
   },
   "provider": {
     "ingestion": {
+      "type": "S3",
       "accessKeyId": "minioadmin",
       "secretAccessKey": "minioadmin",
-      "endpointUrl": "http://127.0.0.1:9000",
+      "endPointUrl": "http://127.0.0.1:9000",
       "bucket": "test",
       "region": "us-east-1",
       "forcePathStyle": true,
       "sslEnabled": false,
       "maxAttempts": 3,
-      "sigVersion": "v4",
-      "storageClass": "STANDARD"
+      "tls": "v4",
+      "pvPath": "./tests/helpers/3DModels"
     },
     "delete": {
+      "type": "S3",
       "accessKeyId": "minioadmin",
       "secretAccessKey": "minioadmin",
-      "endpointUrl": "http://127.0.0.1:9000",
+      "endPointUrl": "http://127.0.0.1:9000",
       "bucket": "test",
       "region": "us-east-1",
       "forcePathStyle": true,
-      "sslEnabled": false,
+      "tls": false,
       "maxAttempts": 3,
       "sigVersion": "v4",
-      "storageClass": "STANDARD"
+      "pvPath": "./tests/helpers/3DModels"
     }
   },
   "jobManager": {

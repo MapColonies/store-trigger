@@ -25,48 +25,35 @@
       }
     }
   },
-  "S3": {
-    "accessKeyId": "minio",
-    "secretAccessKey": "minio",
-    "endpointUrl": "http://10.8.0.9:9000",
-    "bucket": "3dtiles-dest",
-    "region": "us-east-1",
-    "forcePathStyle": true,
-    "sslEnabled": false,
-    "maxAttempts": 3
-  },
-  "NFS": {
-    "pvPath": "/home/netanel/3DModels"
-  },
   "ingestion": {
-    "provider": "NFS",
     "blackList": ["tar", "zip", "rar", "7z"]
   },
   "provider": {
     "ingestion": {
-      "type": "NFS",
-      "accessKeyId": "minioadmin",
-      "secretAccessKey": "minioadmin",
-      "endpointUrl": "http://127.0.0.1:9000",
+      "type": "S3",
+      "accessKeyId": "raster",
+      "secretAccessKey": "rasterPassword",
+      "endPointUrl": "http://10.8.0.9:9000",
       "bucket": "3dtiles",
-      "region": "aws-global",
+      "region": "ui-east-1",
+      "storageClass": "STANDARD",
       "forcePathStyle": true,
       "tls": false,
-      "maxAttempts": 4,
+      "maxAttempts": 3,
       "sigVersion": "v4"
     },
     "delete": {
       "type": "S3",
-      "accessKeyId": "minioadmin",
-      "secretAccessKey": "minioadmin",
-      "endpointUrl": "http://127.0.0.1:9000",
+      "accessKeyId": "raster",
+      "secretAccessKey": "rasterPassword",
+      "endPointUrl": "http://10.8.0.9:9000",
       "bucket": "3dtiles",
-      "region": "aws-global",
+      "region": "ui-east-1",
+      "storageClass": "STANDARD",
       "forcePathStyle": true,
       "tls": false,
-      "maxAttempts": 4,
-      "sigVersion": "v4",
-      "storageClass": "STANDARD"
+      "maxAttempts": 3,
+      "sigVersion": "v4"
     }
   },
   "jobManager": {
@@ -80,8 +67,8 @@
     "task": {
       "batches": 100,
       "type": {
-        "ingestion": "tiles_copying",
-        "delete": "tiles_deleting"
+        "ingestion": "tilesCopying",
+        "delete": "tilesDeleting"
       }
     }
   },

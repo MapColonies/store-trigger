@@ -239,9 +239,9 @@ components:
       type: object
       description: 3d tiles delete requestBody
       required:
-        - modelName
         - modelId
         - pathToTileset
+        - modelName
       properties:
         modelId:
           type: string
@@ -249,14 +249,14 @@ components:
           default: null
           example: a2234fdf
           description: ID of product
-        modelName:
-          type: string
-          maxLength: 50
-          description: Name of product
         pathToTileset:
           type: string
           description: path to tileset
           example: NewYork
+        modelName:
+          type: string
+          maxLength: 50
+          description: Name of product
     ingestion-payload:
       type: object
       description: 3d tiles ingestion payload

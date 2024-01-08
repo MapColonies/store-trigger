@@ -31,7 +31,7 @@ const fakeS3Config = (bucket: string): S3Config => {
     type: 'S3',
     accessKeyId: 'minioadmin',
     secretAccessKey: 'minioadmin',
-    endpointUrl: 'http://127.0.0.1:9000',
+    endPointUrl: 'http://127.0.0.1:9000',
     bucket,
     region: 'us-east-1',
     forcePathStyle: true,

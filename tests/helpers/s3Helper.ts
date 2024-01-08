@@ -23,7 +23,7 @@ export class S3Helper {
 
   public constructor(private readonly config: S3Config) {
     const s3ClientConfig: S3ClientConfigType = {
-      endpoint: config.endpointUrl,
+      endpoint: config.endPointUrl,
       credentials: {
         accessKeyId: config.accessKeyId,
         secretAccessKey: config.secretAccessKey,
