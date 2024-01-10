@@ -107,13 +107,13 @@ export class JobsManager {
         payload.metadata.productName!
       );
       this.logger.debug({
-        msg: 'Finished writing content to queue file. Creating Tasks',
+        msg: 'Finished writing content to queue file. Creating ingestion Tasks',
         modelId: payload.modelId,
         modelName: payload.metadata.productName,
       });
 
       const tasks = this.createTasks(this.batchSize, payload.modelId, type);
-      this.logger.info({ msg: 'Tasks created successfully', modelId: payload.modelId, modelName: payload.metadata.productName });
+      this.logger.info({ msg: 'Ingestion Tasks created successfully', modelId: payload.modelId, modelName: payload.metadata.productName });
 
       await this.createTasksForJob(jobId, tasks, this.maxConcurrency);
       await this.updateFileCountAndStatusOfJob(jobId, fileCount);
@@ -121,7 +121,7 @@ export class JobsManager {
 
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
     } catch (error) {
-      this.logger.error({ msg: 'Failed in creating tasks', modelId: payload.modelId, modelName: payload.metadata.productName, error });
+      this.logger.error({ msg: 'Failed in creating ingestion tasks', modelId: payload.modelId, modelName: payload.metadata.productName, error });
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
       throw error;
     }
@@ -146,14 +146,14 @@ export class JobsManager {
         payload.modelName
       );
       this.logger.debug({
-        msg: 'Finished writing content to queue file. Creating Tasks',
+        msg: 'Finished writing content to queue file. Creating delete Tasks',
         modelId: payload.modelId,
         modelName: payload.modelName,
         pathToTileSet: payload.pathToTileset,
       });
 
       const tasks = this.createTasks(this.batchSize, payload.modelId, type);
-      this.logger.info({ msg: 'Tasks created successfully', modelId: payload.modelId, modelName: payload.modelName });
+      this.logger.info({ msg: 'Delete Tasks created successfully', modelId: payload.modelId, modelName: payload.modelName });
 
       await this.createTasksForJob(jobId, tasks, this.maxConcurrency);
       await this.updateFileCountAndStatusOfJob(jobId, fileCount);
@@ -161,7 +161,7 @@ export class JobsManager {
 
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
     } catch (error) {
-      this.logger.error({ msg: 'Failed in creating tasks', error, modelId: payload.modelId, pathToTileset: payload.pathToTileset });
+      this.logger.error({ msg: 'Failed in creating delete tasks', error, modelId: payload.modelId, pathToTileset: payload.pathToTileset });
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
       throw error;
     }
