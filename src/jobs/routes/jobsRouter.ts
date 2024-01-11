@@ -14,4 +14,4 @@ const jobsRouterFactory: FactoryFunction<Router> = (dependencyContainer) => {
 
 export const JOBS_ROUTER_SYMBOL = Symbol('jobsRouterFactory');
 
-export { jobsRouterFactory as jobsRouterFactory };
+export { jobsRouterFactory };

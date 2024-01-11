@@ -69,7 +69,7 @@
       "type": "PROVIDER_TO",
       "accessKeyId": "S3_DEST_ACCESS_KEY_ID",
       "secretAccessKey": "S3_DEST_SECRET_ACCESS_KEY",
-      "endpointUrl": "S3_DEST_END_POINT_URL",
+      "endPointUrl": "S3_DEST_END_POINT_URL",
       "bucket": "S3_DEST_BUCKET",
       "region": "S3_DEST_REGION",
       "forcePathStyle": {
