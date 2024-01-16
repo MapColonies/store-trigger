@@ -47,7 +47,7 @@ export interface DeleteJobParameters {
   filesCount: number;
 }
 
-export interface Tasks {
+export interface TaskTypes {
   ingestion: string;
   delete: string;
 }
@@ -62,6 +62,7 @@ export interface ProviderManager {
   ingestion: S3Provider | NFSProvider;
   delete: S3Provider | NFSProvider;
 }
+
 export interface S3Config {
   type: 'S3';
   accessKeyId: string;

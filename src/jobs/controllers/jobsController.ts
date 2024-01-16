@@ -47,7 +47,7 @@ export class JobsController {
     const payload: DeletePayload = req.body;
     try {
       const jobCreated = await this.manager.createDeleteJob(payload);
-      this.logger.debug({ msg: `Job delete payload`, modelId: payload.modelId, payload, pathToTileset: payload.pathToTileset });
+      this.logger.debug({ msg: `Job delete payload`, modelId: payload.modelId, payload, modelNamw: payload.modelName });
       res.status(httpStatus.CREATED).json(jobCreated);
       await this.manager.deleteModel(payload, jobCreated.jobID);
       this.createdResourceCounter.add(1);

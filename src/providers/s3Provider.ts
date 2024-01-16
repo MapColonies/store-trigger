@@ -13,18 +13,18 @@ export class S3Provider implements Provider {
   private filesCount: number;
 
   public constructor(
-    protected readonly config: S3Config,
+    protected readonly s3Config: S3Config,
     @inject(SERVICES.LOGGER) protected readonly logger: Logger,
     protected readonly queueFileHandler: QueueFileHandler
   ) {
     const s3ClientConfig: S3ClientConfig = {
-      endpoint: this.config.endPointUrl,
-      forcePathStyle: this.config.forcePathStyle,
+      endpoint: this.s3Config.endPointUrl,
+      forcePathStyle: this.s3Config.forcePathStyle,
       credentials: {
-        accessKeyId: this.config.accessKeyId,
-        secretAccessKey: this.config.secretAccessKey,
+        accessKeyId: this.s3Config.accessKeyId,
+        secretAccessKey: this.s3Config.secretAccessKey,
       },
-      region: this.config.region,
+      region: this.s3Config.region,
     };
 
     this.s3 = new S3Client(s3ClientConfig);
@@ -34,7 +34,7 @@ export class S3Provider implements Provider {
   public async streamModelPathsToQueueFile(modelId: string, pathToTileset: string, modelName: string): Promise<number> {
     /* eslint-disable @typescript-eslint/naming-convention */
     const params: ListObjectsRequest = {
-      Bucket: this.config.bucket,
+      Bucket: this.s3Config.bucket,
       Delimiter: '/',
       Prefix: pathToTileset + '/',
     };
@@ -42,7 +42,7 @@ export class S3Provider implements Provider {
     await this.listS3Recursively(modelId, params);
 
     if (await this.queueFileHandler.checkIfTempFileEmpty(modelId)) {
-      throw new AppError(httpStatus.NOT_FOUND, `Model ${modelName} doesn't exists in bucket ${this.config.bucket}! Path: ${pathToTileset}`, true);
+      throw new AppError(httpStatus.NOT_FOUND, `Model ${modelName} doesn't exists in bucket ${this.s3Config.bucket}! Path: ${pathToTileset}`, true);
     }
 
     this.logger.info({ msg: 'Finished listing the files', filesCount: this.filesCount, modelName, modelId });
@@ -67,7 +67,7 @@ export class S3Provider implements Provider {
 
       if (data.IsTruncated === true) {
         const nextParams: ListObjectsRequest = {
-          Bucket: this.config.bucket,
+          Bucket: this.s3Config.bucket,
           Delimiter: '/',
           Prefix: data.Prefix,
           Marker: data.NextMarker,
@@ -78,7 +78,7 @@ export class S3Provider implements Provider {
       this.logger.debug({ msg: `Listed ${this.filesCount} files`, modelId });
     } catch (error) {
       this.logger.error({ msg: 'failed in listing the model', modelId, error });
-      this.handleS3Error(this.config.bucket, error);
+      this.handleS3Error(this.s3Config.bucket, error);
     }
   }
 
@@ -96,7 +96,7 @@ export class S3Provider implements Provider {
     for (const commonPrefix of CommonPrefixes) {
       if (commonPrefix.Prefix != undefined) {
         const nextParams: ListObjectsRequest = {
-          Bucket: this.config.bucket,
+          Bucket: this.s3Config.bucket,
           Delimiter: '/',
           Prefix: commonPrefix.Prefix,
         };

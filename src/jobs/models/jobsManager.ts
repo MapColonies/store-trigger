@@ -74,6 +74,7 @@ export class JobsManager {
         pathToTileset: payload.pathToTileset,
         filesCount: 0,
       },
+      producerName: payload.modelName,
       percentage: 0,
       status: OperationStatus.PENDING,
       domain: '3D',

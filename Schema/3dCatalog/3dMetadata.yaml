@@ -1,4 +1,3 @@
-openapi: 3.0.1
 info:
   title: 3d ingestion catalog
   description: Service to create 3d ingestion catalog
