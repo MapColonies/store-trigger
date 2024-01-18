@@ -89,14 +89,13 @@ export class JobsManager {
     return res;
   }
 
-  public async streamModel(payload: IngestionPayload| DeletePayload , jobId: string, type: string): Promise<void> {
+  public async streamModel(payload: IngestionPayload | DeletePayload, jobId: string, type: string): Promise<void> {
     const modelName = type === TASK_TYPE.ingestion ? (payload as IngestionPayload).metadata.productName : (payload as DeletePayload).modelName;
-    
+
     this.logger.info({
       msg: `Creating ${type} job for model`,
       modelId: payload.modelId,
       modelName,
-
     });
 
     this.logger.debug({ msg: 'Starts writing content to queue file', modelId: payload.modelId, modelName: modelName });
@@ -106,7 +105,7 @@ export class JobsManager {
       const fileCount: number = await this.providerManager.ingestion.streamModelPathsToQueueFile(
         payload.modelId,
         payload.pathToTileset,
-        modelName as string,
+        modelName as string
       );
       this.logger.debug({
         msg: `Finished writing content to queue file. Creating ${type} tasks`,
