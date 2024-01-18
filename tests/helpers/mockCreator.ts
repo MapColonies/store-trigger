@@ -31,11 +31,11 @@ const fakeS3Config = (bucket: string): S3Config => {
     type: 'S3',
     accessKeyId: 'minioadmin',
     secretAccessKey: 'minioadmin',
-    endPointUrl: 'http://127.0.0.1:9000',
+    endpointUrl: 'http://127.0.0.1:9000',
     bucket,
     region: 'us-east-1',
     forcePathStyle: true,
-    tls: false,
+    sslEnabled: false,
     maxAttempts: 3,
     sigVersion: 'v4',
   };

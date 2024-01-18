@@ -5,7 +5,7 @@ import httpStatus from 'http-status-codes';
 import { container } from 'tsyringe';
 import { getApp } from '../../../../src/app';
 import { AppError } from '../../../../src/common/appError';
-import { SERVICES } from '../../../../src/common/constants';
+import { SERVICES, TASK_TYPE } from '../../../../src/common/constants';
 import { JobsResponse, IngestionPayload, DeletePayload } from '../../../../src/common/interfaces';
 import { JobsManager } from '../../../../src/jobs/models/jobsManager';
 import {
@@ -47,29 +47,27 @@ describe('jobsManager', () => {
 
   describe('createIngestionJob Service', () => {
     it('returns create job response', async () => {
-      // Arrange
       const response: JobsResponse = {
         jobID: '1234',
         status: OperationStatus.PENDING,
       };
       jobManagerClientMock.createJob.mockResolvedValue({ id: '1234', status: OperationStatus.PENDING });
-      // Act
+
       const modelResponse = await jobsManager.createIngestionJob(ingestionPayload);
-      //Assert
+
       expect(modelResponse).toMatchObject(response);
     });
 
     it('rejects if jobManager fails', async () => {
-      // Arrange
+
       jobManagerClientMock.createJob.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
-      // Act && Assert
+
       await expect(jobsManager.createIngestionJob(ingestionPayload)).rejects.toThrow(AppError);
     });
   });
 
   describe('createIngestionModel Service', () => {
     it('resolves without error when everything is ok', async () => {
-      // Arrange
       const jobId = createUuid();
       const parameters = createIngestionJobParameters();
       const filesAmount = randNumber({ min: 1, max: 8 });
@@ -84,43 +82,43 @@ describe('jobsManager', () => {
       jobManagerClientMock.updateJob.mockResolvedValue(undefined);
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
-      // Act
-      const response = await jobsManager.ingestModel(ingestionPayload, jobId);
 
-      //Assert
+      const response = await jobsManager.streamModel(ingestionPayload, jobId, TASK_TYPE.ingestion);
+
+
       expect(response).toBeUndefined();
     });
 
     it(`rejects if couldn't createQueueFile queue file`, async () => {
-      // Arrange
+
       const jobId = createUuid();
       queueFileHandlerMock.createQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
-      // Act && Assert
-      await expect(jobsManager.ingestModel(ingestionPayload, jobId)).rejects.toThrow(AppError);
+
+      await expect(jobsManager.streamModel(ingestionPayload, jobId, TASK_TYPE.ingestion)).rejects.toThrow(AppError);
     });
 
     it(`rejects if couldn't empty queue file`, async () => {
-      // Arrange
+
       const jobId = createUuid();
       queueFileHandlerMock.deleteQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
-      // Act && Assert
-      await expect(jobsManager.ingestModel(ingestionPayload, jobId)).rejects.toThrow(AppError);
+
+      await expect(jobsManager.streamModel(ingestionPayload, jobId, TASK_TYPE.ingestion)).rejects.toThrow(AppError);
     });
 
     it('rejects if the provider failed', async () => {
-      // Arrange
+
       const jobId = createUuid();
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
       providerManagerMock.ingestion.streamModelPathsToQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
-      // Act && Assert
-      await expect(jobsManager.ingestModel(ingestionPayload, jobId)).rejects.toThrow(AppError);
+
+      await expect(jobsManager.streamModel(ingestionPayload, jobId, TASK_TYPE.ingestion)).rejects.toThrow(AppError);
     });
 
     it(`rejects if couldn't read from queue file`, async () => {
-      // Arrange
+
       const jobId = createUuid();
       const filesAmount = randNumber({ min: 1, max: 8 });
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
@@ -130,12 +128,12 @@ describe('jobsManager', () => {
       });
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
-      // Act && Assert
-      await expect(jobsManager.ingestModel(ingestionPayload, jobId)).rejects.toThrow(AppError);
+
+      await expect(jobsManager.streamModel(ingestionPayload, jobId, TASK_TYPE.ingestion)).rejects.toThrow(AppError);
     });
 
     it('rejects if there is a problem with job manager', async () => {
-      // Arrange
+
       const jobId = createUuid();
       const filesAmount = randNumber({ min: 1, max: 8 });
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
@@ -147,8 +145,8 @@ describe('jobsManager', () => {
       jobManagerClientMock.getJob.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
-      // Act && Assert
-      await expect(jobsManager.ingestModel(ingestionPayload, jobId)).rejects.toThrow(AppError);
+
+      await expect(jobsManager.streamModel(ingestionPayload, jobId, TASK_TYPE.ingestion)).rejects.toThrow(AppError);
     });
   });
 
@@ -174,7 +172,7 @@ describe('jobsManager', () => {
 
   describe('createDeleteModel Service', () => {
     it('resolves without error when everything is ok', async () => {
-      // Arrange
+
       const jobId = createUuid();
       const parameters = createDeleteJobParameters();
       const filesAmount = randNumber({ min: 1, max: 8 });
@@ -189,40 +187,38 @@ describe('jobsManager', () => {
       jobManagerClientMock.updateJob.mockResolvedValue(undefined);
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
-      // Act
-      const response = await jobsManager.deleteModel(deletePayload, jobId);
 
-      //Assert
+      const response = await jobsManager.streamModel(deletePayload, jobId, TASK_TYPE.delete);
+
+
       expect(response).toBeUndefined();
     });
     it(`rejects if couldn't createQueueFile queue file`, async () => {
-      // Arrange
+
       const jobId = createUuid();
       queueFileHandlerMock.createQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
-      // Act && Assert
-      await expect(jobsManager.deleteModel(deletePayload, jobId)).rejects.toThrow(AppError);
+
+      await expect(jobsManager.streamModel(deletePayload, jobId, TASK_TYPE.delete)).rejects.toThrow(AppError);
     });
     it(`rejects if couldn't empty queue file`, async () => {
-      // Arrange
       const jobId = createUuid();
       queueFileHandlerMock.deleteQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
-      // Act && Assert
-      await expect(jobsManager.deleteModel(deletePayload, jobId)).rejects.toThrow(AppError);
+
+      await expect(jobsManager.streamModel(deletePayload, jobId, TASK_TYPE.delete)).rejects.toThrow(AppError);
     });
     it('rejects if the provider failed', async () => {
-      // Arrange
       const jobId = createUuid();
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
       providerManagerMock.ingestion.streamModelPathsToQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
-      // Act && Assert
-      await expect(jobsManager.deleteModel(deletePayload, jobId)).rejects.toThrow(AppError);
+
+      await expect(jobsManager.streamModel(deletePayload, jobId, TASK_TYPE.delete)).rejects.toThrow(AppError);
     });
 
     it(`rejects if couldn't read from queue file`, async () => {
-      // Arrange
+
       const jobId = createUuid();
       const filesAmount = randNumber({ min: 1, max: 8 });
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
@@ -232,12 +228,12 @@ describe('jobsManager', () => {
       });
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
-      // Act && Assert
-      await expect(jobsManager.deleteModel(deletePayload, jobId)).rejects.toThrow(AppError);
+
+      await expect(jobsManager.streamModel(deletePayload, jobId, TASK_TYPE.delete)).rejects.toThrow(AppError);
     });
 
     it('rejects if there is a problem with job manager', async () => {
-      // Arrange
+
       const jobId = createUuid();
       const filesAmount = randNumber({ min: 1, max: 8 });
       queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
@@ -249,8 +245,8 @@ describe('jobsManager', () => {
       jobManagerClientMock.getJob.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
-      // Act && Assert
-      await expect(jobsManager.deleteModel(deletePayload, jobId)).rejects.toThrow(AppError);
+
+      await expect(jobsManager.streamModel(deletePayload, jobId, TASK_TYPE.delete)).rejects.toThrow(AppError);
     });
   });
 });

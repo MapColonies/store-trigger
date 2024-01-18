@@ -67,11 +67,11 @@ export interface S3Config {
   type: 'S3';
   accessKeyId: string;
   secretAccessKey: string;
-  endPointUrl: string;
+  endpointUrl: string;
   bucket: string;
   region: string;
   forcePathStyle: boolean;
-  tls: boolean;
+  sslEnabled: boolean;
   maxAttempts: number;
   sigVersion: string;
 }

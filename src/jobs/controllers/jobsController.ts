@@ -4,7 +4,7 @@ import { RequestHandler } from 'express';
 import httpStatus from 'http-status-codes';
 import { inject, injectable } from 'tsyringe';
 import { AppError } from '../../common/appError';
-import { SERVICES } from '../../common/constants';
+import { SERVICES, TASK_TYPE } from '../../common/constants';
 import { JobsResponse, IngestionPayload, DeletePayload } from '../../common/interfaces';
 import { JobsManager } from '../models/jobsManager';
 
@@ -29,7 +29,7 @@ export class JobsController {
       const jobCreated = await this.manager.createIngestionJob(payload);
       this.logger.debug({ msg: `Job ingest payload`, modelId: payload.modelId, payload, modelName: payload.metadata.productName });
       res.status(httpStatus.CREATED).json(jobCreated);
-      await this.manager.ingestModel(payload, jobCreated.jobID);
+      await this.manager.streamModel(payload, jobCreated.jobID, TASK_TYPE.ingestion);
       this.createdResourceCounter.add(1);
     } catch (error) {
       if (error instanceof AppError) {
@@ -47,9 +47,9 @@ export class JobsController {
     const payload: DeletePayload = req.body;
     try {
       const jobCreated = await this.manager.createDeleteJob(payload);
-      this.logger.debug({ msg: `Job delete payload`, modelId: payload.modelId, payload, modelNamw: payload.modelName });
+      this.logger.debug({ msg: `Job delete payload`, modelId: payload.modelId, payload, modelName: payload.modelName });
       res.status(httpStatus.CREATED).json(jobCreated);
-      await this.manager.deleteModel(payload, jobCreated.jobID);
+      await this.manager.streamModel(payload, jobCreated.jobID, TASK_TYPE.delete);
       this.createdResourceCounter.add(1);
     } catch (error) {
       if (error instanceof AppError) {
