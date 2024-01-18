@@ -101,12 +101,15 @@ export class JobsManager {
     this.logger.debug({ msg: 'Starts writing content to queue file', modelId: payload.modelId, modelName: modelName });
     await this.queueFileHandler.createQueueFile(payload.modelId);
 
+    let fileCount: number;
+
     try {
-      const fileCount: number = await this.providerManager.ingestion.streamModelPathsToQueueFile(
-        payload.modelId,
-        payload.pathToTileset,
-        modelName as string
-      );
+      if (type === TASK_TYPE.ingestion) {
+        fileCount = await this.providerManager.ingestion.streamModelPathsToQueueFile(payload.modelId, payload.pathToTileset, modelName as string);
+      } else {
+        fileCount = await this.providerManager.delete.streamModelPathsToQueueFile(payload.modelId, payload.pathToTileset, modelName as string);
+      }
+
       this.logger.debug({
         msg: `Finished writing content to queue file. Creating ${type} tasks`,
         modelId: payload.modelId,
