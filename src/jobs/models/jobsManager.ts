@@ -96,7 +96,7 @@ export class JobsManager {
       msg: `Creating ${type} job for model`,
       modelId: payload.modelId,
       modelName,
-      type
+      type,
     });
 
     this.logger.debug({ msg: 'Starts writing content to queue file', modelId: payload.modelId, modelName: modelName });
