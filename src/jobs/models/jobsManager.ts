@@ -96,6 +96,7 @@ export class JobsManager {
       msg: `Creating ${type} job for model`,
       modelId: payload.modelId,
       modelName,
+      type
     });
 
     this.logger.debug({ msg: 'Starts writing content to queue file', modelId: payload.modelId, modelName: modelName });
@@ -116,7 +117,7 @@ export class JobsManager {
         modelName,
       });
 
-      const tasks = this.createTasks(this.batchSize, payload.modelId, TASK_TYPE.ingestion);
+      const tasks = this.createTasks(this.batchSize, payload.modelId, type);
       this.logger.info({ msg: `${type} Tasks created successfully`, modelId: payload.modelId, modelName: modelName });
 
       await this.createTasksForJob(jobId, tasks, this.maxConcurrency);
