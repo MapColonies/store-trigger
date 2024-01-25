@@ -90,7 +90,8 @@ export class JobsManager {
   }
 
   public async streamModel(payload: IngestionPayload | DeletePayload, jobId: string, type: string): Promise<void> {
-    const modelName = type === TASK_TYPE.ingestion ? (payload as IngestionPayload).metadata.productName : (payload as DeletePayload).modelName;
+    const modelName =
+      type === TASK_TYPE.ingestion ? ((payload as IngestionPayload).metadata.productName as string) : (payload as DeletePayload).modelName;
 
     this.logger.info({
       msg: `Creating ${type} job for model`,
@@ -106,9 +107,9 @@ export class JobsManager {
 
     try {
       if (type === TASK_TYPE.ingestion) {
-        fileCount = await this.providerManager.ingestion.streamModelPathsToQueueFile(payload.modelId, payload.pathToTileset, modelName as string);
+        fileCount = await this.providerManager.ingestion.streamModelPathsToQueueFile(payload.modelId, payload.pathToTileset, modelName);
       } else {
-        fileCount = await this.providerManager.delete.streamModelPathsToQueueFile(payload.modelId, payload.pathToTileset, modelName as string);
+        fileCount = await this.providerManager.delete.streamModelPathsToQueueFile(payload.modelId, payload.pathToTileset, modelName);
       }
 
       this.logger.debug({

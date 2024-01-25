@@ -25,6 +25,8 @@ export class S3Provider implements Provider {
         secretAccessKey: this.s3Config.secretAccessKey,
       },
       region: this.s3Config.region,
+      maxAttempts: this.s3Config.maxAttempts,
+      apiVersion: this.s3Config.sigVersion,
     };
 
     this.s3 = new S3Client(s3ClientConfig);
