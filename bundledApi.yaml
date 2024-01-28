@@ -68,6 +68,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 components:
+  parameters:
+    jobID:
+      in: path
+      name: jobID
+      required: true
+      schema:
+        type: string
+      description: The jobID for status check
   schemas:
     error:
       type: object
@@ -119,6 +127,28 @@ components:
         jobId:
           type: string
           description: job id
+    delete-request:
+      type: object
+      description: 3d tiles delete requestBody
+      required:
+        - modelId
+        - pathToTileset
+        - modelName
+      properties:
+        modelId:
+          type: string
+          nullable: true
+          default: null
+          example: a2234fdf
+          description: ID of product
+        pathToTileset:
+          type: string
+          description: path to tileset
+          example: NewYork
+        modelName:
+          type: string
+          maxLength: 50
+          description: Name of product
     GeometryBase:
       type: object
       description: GeoJSon geometry
@@ -235,28 +265,6 @@ components:
         - $ref: '#/components/schemas/MultiPoint'
         - $ref: '#/components/schemas/MultiLineString'
         - $ref: '#/components/schemas/MultiPolygon'
-    delete-request:
-      type: object
-      description: 3d tiles delete requestBody
-      required:
-        - modelId
-        - pathToTileset
-        - modelName
-      properties:
-        modelId:
-          type: string
-          nullable: true
-          default: null
-          example: a2234fdf
-          description: ID of product
-        pathToTileset:
-          type: string
-          description: path to tileset
-          example: NewYork
-        modelName:
-          type: string
-          maxLength: 50
-          description: Name of product
     ingestion-payload:
       type: object
       description: 3d tiles ingestion payload
@@ -374,7 +382,7 @@ components:
         footprint:
           allOf:
             - $ref: '#/components/schemas/Geometry'
-            - description: Geographic demarkatetion of the product
+            - description: Geographic demarcation of the product
             - example: >-
                 {"type":"Polygon","coordinates":[[[1,2],[3,4],[5,6],[7,8],[1,2]]]}
         heightRangeFrom:

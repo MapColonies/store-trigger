@@ -39,8 +39,7 @@
       "storageClass": "STANDARD",
       "forcePathStyle": true,
       "sslEnabled": false,
-      "maxAttempts": 3,
-      "sigVersion": "v4"
+      "maxAttempts": 3
     },
     "delete": {
       "type": "S3",
@@ -52,8 +51,7 @@
       "storageClass": "STANDARD",
       "forcePathStyle": true,
       "sslEnabled": false,
-      "maxAttempts": 3,
-      "sigVersion": "v4"
+      "maxAttempts": 3
     }
   },
   "jobManager": {
