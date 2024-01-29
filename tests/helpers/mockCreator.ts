@@ -37,7 +37,6 @@ const fakeS3Config = (bucket: string): S3Config => {
     forcePathStyle: true,
     sslEnabled: false,
     maxAttempts: 3,
-    sigVersion: 'v4',
   };
 };
 

@@ -62,7 +62,6 @@
         "__name": "S3_SOURCE_MAX_ATTEMPTS",
         "__format": "number"
       },
-      "sigVersion": "S3_SOURCE_SIG_VERSION",
       "pvPath": "PV_SOURCE_PATH"
     },
     "delete": {
@@ -84,7 +83,6 @@
         "__name": "S3_DEST_MAX_ATTEMPTS",
         "__format": "number"
       },
-      "sigVersion": "S3_DEST_SIG_VERSION",
       "pvPath": "PV_DEST_PATH"
     }
   },

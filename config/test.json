@@ -25,7 +25,6 @@
       "forcePathStyle": true,
       "sslEnabled": false,
       "maxAttempts": 3,
-      "sigVersion": "v4",
       "pvPath": "./tests/helpers/3DModels"
     }
   },
