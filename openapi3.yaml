@@ -69,14 +69,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 components:
-  parameters:
-    jobID:
-      in: path
-      name: jobID
-      required: true
-      schema:
-        type: string
-      description: The jobID for status check
   schemas:
     error:
       type: object
