@@ -91,7 +91,7 @@ export class JobsManager {
 
   public async streamModel(payload: IngestionPayload | DeletePayload, jobId: string, type: string): Promise<void> {
     const modelName =
-      type === TASK_TYPE.ingestion ? ((payload as IngestionPayload).metadata.productName as string) : (payload as DeletePayload).modelName;
+      type === TASK_TYPE.ingestion ? (payload as IngestionPayload).metadata.productName as string : (payload as DeletePayload).modelName;
 
     this.logger.info({
       msg: `Creating ${type} job for model`,
