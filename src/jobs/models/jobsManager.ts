@@ -26,7 +26,6 @@ export class JobsManager {
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.JOB_MANAGER_CLIENT) private readonly jobManagerClient: JobManagerClient,
     @inject(SERVICES.PROVIDER_MANAGER) private readonly providerManager: ProviderManager,
-
     @inject(SERVICES.QUEUE_FILE_HANDLER) protected readonly queueFileHandler: QueueFileHandler
   ) {
     this.batchSize = config.get<number>('jobManager.task.batches');
@@ -91,7 +90,7 @@ export class JobsManager {
 
   public async streamModel(payload: IngestionPayload | DeletePayload, jobId: string, type: string): Promise<void> {
     const modelName =
-      type === TASK_TYPE.ingestion ? (payload as IngestionPayload).metadata.productName as string : (payload as DeletePayload).modelName;
+      type === TASK_TYPE.ingestion ? ((payload as IngestionPayload).metadata.productName as string) : (payload as DeletePayload).modelName;
 
     this.logger.info({
       msg: `Creating ${type} job for model`,
