@@ -15,7 +15,7 @@ export class S3Provider implements Provider {
   public constructor(
     protected readonly s3Config: S3Config,
     @inject(SERVICES.LOGGER) protected readonly logger: Logger,
-    protected readonly queueFileHandler: QueueFileHandler
+    @inject(SERVICES.QUEUE_FILE_HANDLER) protected readonly queueFileHandler: QueueFileHandler
   ) {
     const s3ClientConfig: S3ClientConfig = {
       endpoint: this.s3Config.endpointUrl,
