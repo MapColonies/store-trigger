@@ -12,7 +12,7 @@ export class NFSProvider implements Provider {
   public constructor(
     protected readonly config: NFSConfig,
     @inject(SERVICES.LOGGER) protected readonly logger: Logger,
-    protected readonly queueFileHandler: QueueFileHandler
+    @inject(SERVICES.QUEUE_FILE_HANDLER) protected readonly queueFileHandler: QueueFileHandler
   ) {}
 
   public async streamModelPathsToQueueFile(modelId: string, pathToTileset: string, modelName: string): Promise<number> {
