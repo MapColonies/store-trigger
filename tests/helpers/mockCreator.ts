@@ -1,10 +1,7 @@
-import config from 'config';
 import { randNumber, randPastDate, randSentence, randUuid, randWord } from '@ngneat/falso';
 import { Polygon } from 'geojson';
 import { Layer3DMetadata, ProductType, RecordStatus, RecordType } from '@map-colonies/mc-model-types';
-import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import {
-  IngestionJobBody,
   DeleteJobParameters,
   DeletePayload,
   IngestionJobParameters as IngestionJobParameters,
@@ -13,7 +10,6 @@ import {
   ProviderConfig,
   ProvidersConfig,
   S3Config,
-  DeleteJobBody,
 } from '../../src/common/interfaces';
 
 const maxResolutionMeter = 8000;
@@ -153,33 +149,6 @@ export const createDeletePayload = (modelName: string): DeletePayload => {
   };
 };
 
-export const createIngestionJobBody = (payload: IngestionPayload): IngestionJobBody => {
-  return {
-    resourceId: payload.modelId,
-    version: '1',
-    type: config.get<string>('jobManager.job.type.ingestion'),
-    parameters: createIngestionJobParameters(),
-    productType: payload.metadata.productType,
-    productName: payload.metadata.productName,
-    percentage: 0,
-    producerName: payload.metadata.producerName,
-    status: OperationStatus.PENDING,
-    domain: '3D',
-  };
-};
-
-export const createDeleteJobBody = (payload: DeletePayload): DeleteJobBody => {
-  return {
-    resourceId: payload.modelId,
-    version: '1',
-    type: config.get<string>('jobManager.job.type.delete'),
-    parameters: createDeleteJobParameters(),
-    percentage: 0,
-    status: OperationStatus.PENDING,
-    domain: '3D',
-  };
-};
-
 export const queueFileHandlerMock = {
   deleteQueueFile: jest.fn(),
   readline: jest.fn(),
@@ -199,12 +168,8 @@ export const configProviderMock = {
 };
 
 export const providerManagerMock = {
-  ingestion: {
-    streamModelPathsToQueueFile: jest.fn(),
-  },
-  delete: {
-    streamModelPathsToQueueFile: jest.fn(),
-  },
+  ingestion: configProviderMock,
+  delete: configProviderMock,
 };
 
 export const mockNFSNFS = fakeProvidersConfig('nfs', 'nfs') as { ingestion: NFSConfig; delete: NFSConfig };

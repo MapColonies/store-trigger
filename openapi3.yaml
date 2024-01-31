@@ -120,7 +120,7 @@ components:
         jobId:
           type: string
           description: job id
-    delete-request:
+    deleteRequest:
       type: object
       description: 3d tiles delete requestBody
       required:

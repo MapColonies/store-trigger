@@ -98,7 +98,6 @@ describe('NFSProvider tests', () => {
         ],
       });
       providerManager = container.resolve(SERVICES.PROVIDER_MANAGER);
-
       const pathToTileset = randWord();
       const modelName = randWord();
       const modelId = randUuid();

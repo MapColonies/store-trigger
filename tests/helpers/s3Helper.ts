@@ -30,6 +30,7 @@ export class S3Helper {
       },
       region: config.region,
       maxAttempts: config.maxAttempts,
+      tls: config.sslEnabled,
       forcePathStyle: config.forcePathStyle,
     };
     this.s3 = new S3Client(s3ClientConfig);
