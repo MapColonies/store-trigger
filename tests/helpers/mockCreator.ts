@@ -1,15 +1,58 @@
-import config from 'config';
 import { randNumber, randPastDate, randSentence, randUuid, randWord } from '@ngneat/falso';
 import { Polygon } from 'geojson';
 import { Layer3DMetadata, ProductType, RecordStatus, RecordType } from '@map-colonies/mc-model-types';
-import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import { CreateJobBody, JobParameters, Payload } from '../../src/common/interfaces';
+import {
+  DeleteJobParameters,
+  DeletePayload,
+  IngestionJobParameters as IngestionJobParameters,
+  IngestionPayload,
+  NFSConfig,
+  ProviderConfig,
+  ProvidersConfig,
+  S3Config,
+} from '../../src/common/interfaces';
 
 const maxResolutionMeter = 8000;
 const noData = 999;
 const maxAccuracySE90 = 250;
 const maxRelativeAccuracyLEP90 = 100;
 const maxVisualAccuracy = 100;
+
+const fakeNFSConfig = (name: string): NFSConfig => {
+  return { type: 'NFS', pvPath: `./tests/helpers/${name}` };
+};
+
+const fakeS3Config = (bucket: string): S3Config => {
+  return {
+    type: 'S3',
+    accessKeyId: 'minioadmin',
+    secretAccessKey: 'minioadmin',
+    endpointUrl: 'http://127.0.0.1:9000',
+    bucket,
+    region: 'us-east-1',
+    forcePathStyle: true,
+    sslEnabled: false,
+    maxAttempts: 3,
+  };
+};
+
+const fakeProvidersConfig = (ingestion: string, deleteModel: string): ProvidersConfig => {
+  return {
+    ingestion: FakeProvider(ingestion, 'ingestion-models'),
+    delete: FakeProvider(deleteModel, 'delete-models'),
+  };
+};
+
+const FakeProvider = (provider: string, name: string): ProviderConfig => {
+  switch (provider) {
+    case 's3':
+      return fakeS3Config(name);
+    case 'nfs':
+      return fakeNFSConfig(name);
+    default:
+      throw Error('wrong values');
+  }
+};
 
 export const createUuid = (): string => {
   return randUuid();
@@ -70,7 +113,26 @@ export const createMetadata = (): Layer3DMetadata => {
   };
 };
 
-export const createPayload = (modelName: string): Payload => {
+export const createIngestionJobParameters = (): IngestionJobParameters => {
+  return {
+    metadata: createMetadata(),
+    modelId: createUuid(),
+    tilesetFilename: 'tileset.json',
+    filesCount: 0,
+    pathToTileset: 'path/to/tileset',
+  };
+};
+
+export const createDeleteJobParameters = (): DeleteJobParameters => {
+  return {
+    modelId: createUuid(),
+    pathToTileset: 'path/to/tileset',
+    filesCount: 0,
+    modelName: randWord(),
+  };
+};
+
+export const createIngestionPayload = (modelName: string): IngestionPayload => {
   return {
     modelId: createUuid(),
     pathToTileset: modelName,
@@ -79,27 +141,10 @@ export const createPayload = (modelName: string): Payload => {
   };
 };
 
-export const createJobPayload = (payload: Payload): CreateJobBody => {
+export const createDeletePayload = (modelName: string): DeletePayload => {
   return {
-    resourceId: payload.modelId,
-    version: '1',
-    type: config.get<string>('jobManager.job.type'),
-    parameters: createJobParameters(),
-    productType: payload.metadata.productType,
-    productName: payload.metadata.productName,
-    percentage: 0,
-    producerName: payload.metadata.producerName,
-    status: OperationStatus.PENDING,
-    domain: '3D',
-  };
-};
-
-export const createJobParameters = (): JobParameters => {
-  return {
-    metadata: createMetadata(),
     modelId: createUuid(),
-    tilesetFilename: 'tileset.json',
-    filesCount: 0,
+    modelName: modelName,
     pathToTileset: 'path/to/tileset',
   };
 };
@@ -121,3 +166,13 @@ export const jobManagerClientMock = {
 export const configProviderMock = {
   streamModelPathsToQueueFile: jest.fn(),
 };
+
+export const providerManagerMock = {
+  ingestion: configProviderMock,
+  delete: configProviderMock,
+};
+
+export const mockNFSNFS = fakeProvidersConfig('nfs', 'nfs') as { ingestion: NFSConfig; delete: NFSConfig };
+export const mockNFSS3 = fakeProvidersConfig('nfs', 's3') as { ingestion: NFSConfig; delete: S3Config };
+export const mockS3NFS = fakeProvidersConfig('s3', 'nfs') as { ingestion: S3Config; delete: NFSConfig };
+export const mockS3S3 = fakeProvidersConfig('s3', 's3') as { ingestion: S3Config; delete: S3Config };

@@ -1,47 +1,55 @@
 import fs from 'fs';
 import os from 'os';
-import config from 'config';
 import { container } from 'tsyringe';
 import httpStatus from 'http-status-codes';
 import { randUuid, randWord } from '@ngneat/falso';
 import jsLogger from '@map-colonies/js-logger';
 import { getApp } from '../../../src/app';
-import { NFSProvider } from '../../../src/providers/nfsProvider';
 import { SERVICES } from '../../../src/common/constants';
-import { NFSConfig } from '../../../src/common/interfaces';
+import { ProviderManager } from '../../../src/common/interfaces';
 import { AppError } from '../../../src/common/appError';
-import { createFile, queueFileHandlerMock } from '../../helpers/mockCreator';
+import { createFile, mockNFSNFS, queueFileHandlerMock } from '../../helpers/mockCreator';
 import { QueueFileHandler } from '../../../src/handlers/queueFileHandler';
 import { NFSHelper } from '../../helpers/nfsHelper';
+import { getProviderManager } from '../../../src/providers/getProvider';
 
 describe('NFSProvider tests', () => {
-  let provider: NFSProvider;
+  let providerManager: ProviderManager;
   let queueFileHandler: QueueFileHandler;
   const queueFilePath = os.tmpdir();
-  const nfsConfig = config.get<NFSConfig>('NFS');
-  let nfsHelper: NFSHelper;
+  let nfsHelperIngestion: NFSHelper;
+  let nfsHelperDelete: NFSHelper;
 
   beforeAll(() => {
     getApp({
       override: [
-        { token: SERVICES.PROVIDER_CONFIG, provider: { useValue: nfsConfig } },
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+        {
+          token: SERVICES.PROVIDER_MANAGER,
+          provider: {
+            useFactory: (): ProviderManager => {
+              return getProviderManager(mockNFSNFS);
+            },
+          },
+        },
       ],
     });
-    provider = container.resolve(NFSProvider);
+    providerManager = container.resolve(SERVICES.PROVIDER_MANAGER);
     queueFileHandler = container.resolve(QueueFileHandler);
-    nfsHelper = new NFSHelper(nfsConfig);
+    nfsHelperIngestion = new NFSHelper(mockNFSNFS.ingestion);
+    nfsHelperDelete = new NFSHelper(mockNFSNFS.delete);
   });
 
   beforeEach(() => {
-    nfsHelper.initNFS();
+    nfsHelperIngestion.initNFS();
+    nfsHelperDelete.initNFS();
   });
 
   afterEach(async () => {
-    await nfsHelper.cleanNFS();
+    await nfsHelperIngestion.cleanNFS();
+    await nfsHelperDelete.cleanNFS();
     jest.clearAllMocks();
   });
-
   describe('streamModelPathsToQueueFile Function', () => {
     it('if model exists in the agreed folder, returns all the file paths of the model', async () => {
       const modelId = randUuid();
@@ -51,11 +59,11 @@ describe('NFSProvider tests', () => {
       let expected = '';
       for (let i = 0; i < 4; i++) {
         const file = i === 3 ? `${i}${createFile(false, true)}` : `${i}${createFile()}`;
-        await nfsHelper.createFileOfModel(pathToTileset, file);
+        await nfsHelperIngestion.createFileOfModel(pathToTileset, file);
         expected = `${expected}${pathToTileset}/${file}\n`;
       }
 
-      await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      await providerManager.ingestion.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
 
       expect(result).toStrictEqual(expected);
@@ -68,7 +76,7 @@ describe('NFSProvider tests', () => {
       const modelId = randUuid();
 
       const result = async () => {
-        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+        await providerManager.ingestion.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       };
 
       await expect(result).rejects.toThrow(AppError);
@@ -77,21 +85,28 @@ describe('NFSProvider tests', () => {
     it('if queue file handler does not work, throws error', async () => {
       getApp({
         override: [
-          { token: SERVICES.PROVIDER_CONFIG, provider: { useValue: nfsConfig } },
           { token: SERVICES.QUEUE_FILE_HANDLER, provider: { useValue: queueFileHandlerMock } },
           { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+          {
+            token: SERVICES.PROVIDER_MANAGER,
+            provider: {
+              useFactory: (): ProviderManager => {
+                return getProviderManager(mockNFSNFS);
+              },
+            },
+          },
         ],
       });
-      provider = container.resolve(NFSProvider);
+      providerManager = container.resolve(SERVICES.PROVIDER_MANAGER);
       const pathToTileset = randWord();
       const modelName = randWord();
       const modelId = randUuid();
       const file = createFile();
-      await nfsHelper.createFileOfModel(pathToTileset, file);
+      await nfsHelperIngestion.createFileOfModel(pathToTileset, file);
       queueFileHandlerMock.writeFileNameToQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, 'queueFileHandler', false));
 
       const result = async () => {
-        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+        await providerManager.ingestion.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       };
 
       await expect(result).rejects.toThrow(AppError);

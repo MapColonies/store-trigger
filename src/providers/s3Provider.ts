@@ -4,8 +4,8 @@ import httpStatus from 'http-status-codes';
 import { inject, injectable } from 'tsyringe';
 import { QueueFileHandler } from '../handlers/queueFileHandler';
 import { AppError } from '../common/appError';
-import { SERVICES } from '../common/constants';
 import { Provider, S3Config } from '../common/interfaces';
+import { SERVICES } from '../common/constants';
 
 @injectable()
 export class S3Provider implements Provider {
@@ -13,7 +13,7 @@ export class S3Provider implements Provider {
   private filesCount: number;
 
   public constructor(
-    @inject(SERVICES.PROVIDER_CONFIG) protected readonly s3Config: S3Config,
+    protected readonly s3Config: S3Config,
     @inject(SERVICES.LOGGER) protected readonly logger: Logger,
     @inject(SERVICES.QUEUE_FILE_HANDLER) protected readonly queueFileHandler: QueueFileHandler
   ) {
@@ -24,7 +24,9 @@ export class S3Provider implements Provider {
         accessKeyId: this.s3Config.accessKeyId,
         secretAccessKey: this.s3Config.secretAccessKey,
       },
+      tls: this.s3Config.sslEnabled,
       region: this.s3Config.region,
+      maxAttempts: this.s3Config.maxAttempts,
     };
 
     this.s3 = new S3Client(s3ClientConfig);

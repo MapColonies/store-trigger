@@ -25,31 +25,47 @@
       }
     }
   },
-  "S3": {
-    "accessKeyId": "minio",
-    "secretAccessKey": "minio",
-    "endpointUrl": "http://10.8.0.9:9000",
-    "bucket": "3dtiles-dest",
-    "region": "us-east-1",
-    "forcePathStyle": true,
-    "sslEnabled": false,
-    "maxAttempts": 3
-  },
-  "NFS": {
-    "pvPath": "/home/netanel/3DModels"
-  },
   "ingestion": {
-    "provider": "NFS",
     "blackList": ["tar", "zip", "rar", "7z"]
+  },
+  "provider": {
+    "ingestion": {
+      "type": "S3",
+      "accessKeyId": "raster",
+      "secretAccessKey": "rasterPassword",
+      "endpointUrl": "http://10.8.0.9:9000",
+      "bucket": "3dtiles",
+      "region": "ui-east-1",
+      "forcePathStyle": true,
+      "sslEnabled": false,
+      "maxAttempts": 3
+    },
+    "delete": {
+      "type": "S3",
+      "accessKeyId": "raster",
+      "secretAccessKey": "rasterPassword",
+      "endpointUrl": "http://10.8.0.9:9000",
+      "bucket": "3dtiles",
+      "region": "ui-east-1",
+      "forcePathStyle": true,
+      "sslEnabled": false,
+      "maxAttempts": 3
+    }
   },
   "jobManager": {
     "url": "http://127.0.0.1:8080",
     "job": {
-      "type": "Ingestion_New_3D"
+      "type": {
+        "ingestion": "Ingestion_New_3D",
+        "delete": "Delete_3D_Model"
+      }
     },
     "task": {
       "batches": 100,
-      "type": "Ingestion"
+      "type": {
+        "ingestion": "tilesCopying",
+        "delete": "tilesDeleting"
+      }
     }
   },
   "maxConcurrency": 5

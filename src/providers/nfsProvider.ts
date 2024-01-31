@@ -10,7 +10,7 @@ import { Provider, NFSConfig } from '../common/interfaces';
 @injectable()
 export class NFSProvider implements Provider {
   public constructor(
-    @inject(SERVICES.PROVIDER_CONFIG) protected readonly config: NFSConfig,
+    protected readonly config: NFSConfig,
     @inject(SERVICES.LOGGER) protected readonly logger: Logger,
     @inject(SERVICES.QUEUE_FILE_HANDLER) protected readonly queueFileHandler: QueueFileHandler
   ) {}
@@ -21,7 +21,7 @@ export class NFSProvider implements Provider {
     try {
       await fs.access(modelPath);
     } catch (error) {
-      this.logger.error({ msg: 'failed to access the folder', modelId, modelName, error });
+      this.logger.error({ msg: 'failed to access the folder', error, modelId, modelName });
       throw new AppError(httpStatus.NOT_FOUND, `Model ${modelName} doesn't exists in the agreed folder. Path: ${modelPath}`, true);
     }
 
