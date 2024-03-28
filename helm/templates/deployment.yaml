@@ -1,0 +1,99 @@
+{{- $releaseName := .Release.Name -}}
+{{- $chartName := include "store-trigger.name" . -}}
+{{- $cloudProviderFlavor := include "store-trigger.cloudProviderFlavor" . -}}
+{{- $cloudProviderDockerRegistryUrl := include "store-trigger.cloudProviderDockerRegistryUrl" . -}}
+{{- $cloudProviderImagePullSecretName := include "store-trigger.cloudProviderImagePullSecretName" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $releaseName }}-store-trigger
+  labels:
+    app: store-trigger
+    component: store-trigger
+    environment: {{ include "store-trigger.environment" . }}
+    release: {{ $releaseName }}
+    {{- include "store-trigger.labels" . | nindent 4 }}
+{{-  $splunk := (include "common.splunk.merged" . ) | fromYaml }}
+{{- if $splunk.enabled }}
+{{- with $splunk.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: store-trigger
+      release: {{ $releaseName }}
+      run: {{ $releaseName }}-store-trigger
+      {{- include "store-trigger.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: store-trigger
+        release: {{ $releaseName }}
+        run: {{ $releaseName }}-store-trigger
+        {{- include "store-trigger.selectorLabels" . | nindent 8 }}
+      {{- if .Values.resetOnConfigChange }}
+      annotations:
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- end }}
+    spec:
+    {{- if $cloudProviderImagePullSecretName }}
+      imagePullSecrets:
+        - name: {{ $cloudProviderImagePullSecretName | quote }}
+    {{- end }}
+      containers:
+        - name: {{ $releaseName }}-store-trigger-deployment
+          {{- with .Values.image }}
+          image: {{ $cloudProviderDockerRegistryUrl }}{{ .repository }}:{{ .tag }}
+          {{- end }}
+          volumeMounts:
+            {{-  $providers := (include "common.providers.merged" . ) | fromYaml }}
+            {{- if eq $providers.source "NFS" }}
+            - name: store-trigger-source-storage
+              {{-  $NFS := (include "common.NFS.merged" . ) | fromYaml }}
+              mountPath: {{ $NFS.source.pv_path }}
+              subPath: {{ $NFS.source.sub_path }}
+            {{- end }}
+            {{-  $ca := (include "common.ca.merged" . ) | fromYaml }}
+            {{- if $ca.enabled }}
+            - mountPath: {{ printf "%s/%s" $ca.path $ca.key | quote }}
+              name: root-ca
+              subPath: {{ quote $ca.key }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-{{ $chartName }}-configmap
+            - configMapRef:
+                name: {{ .Release.Name }}-{{ $chartName }}-configmap
+          ports:
+            - name: http
+              containerPort: {{ .Values.env.targetPort }}
+              protocol: {{ .Values.env.protocol }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.initialDelaySeconds }}
+            httpGet:
+              path: /liveness
+              port: {{ .Values.env.targetPort }}
+          {{- if .Values.resources.enabled }}
+          resources:
+            {{- toYaml .Values.resources.value | nindent 12 }}
+          {{- end }}
+      volumes:
+        {{- if eq $providers.source "NFS" }}
+        - name: store-trigger-source-storage
+          persistentVolumeClaim:
+        {{-  $NFS := (include "common.NFS.merged" . ) | fromYaml }}
+            claimName: {{ $NFS.source.name }}
+        {{- end }}
+        {{- if $ca.enabled }}
+        - name: root-ca
+          secret:
+            secretName: {{ $ca.secretName }}
+        {{- end }}
+      terminationGracePeriodSeconds: 30
+      {{- if .Values.sidecars }}
+      {{ tpl (.Values.sidecars) . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,32 @@
+{{- $releaseName := .Release.Name -}}
+{{- $chartName := include "store-trigger.name" . -}}
+{{- $cloudProviderFlavor := include "store-trigger.cloudProviderFlavor" . -}}
+{{- if and (eq $cloudProviderFlavor "openshift") (.Values.route.enabled) -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $releaseName }}-store-trigger-route
+  annotations:
+    haproxy.router.openshift.io/rewrite-target: /
+    {{- if .Values.route.timeout.enabled }}
+    haproxy.router.openshift.io/timeout: {{ .Values.route.timeout.duration }}
+    {{- end }}
+spec:
+  {{- if .Values.route.host }}
+  host: {{ .Values.route.host }}
+  {{- end }}
+  path:  {{ .Values.route.path | default "/" }}
+  to:
+    kind: Service
+    name: {{ $releaseName }}-store-trigger
+  {{- if .Values.route.https }}
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+    {{- if .Values.route.useCert }}
+    certificate: {{ .Files.Get "config/certificate.pem" | quote }}
+    key: {{ .Files.Get "config/key.pem" | quote }}
+    caCertificate: {{ .Files.Get "config/caCertificate.pem" | quote }}
+    {{- end }}
+  {{- end }}
+{{- end -}}
