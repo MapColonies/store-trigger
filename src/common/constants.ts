@@ -8,7 +8,7 @@ export const DEFAULT_SERVER_PORT = 80;
 
 export const NODE_VERSION = process.versions.node;
 
-export const JOB_TYPE = config.get<string>('jobManager.job.type');
+export const JOB_TYPE = config.get<string>('jobManager.job.type')
 
 /* eslint-disable @typescript-eslint/naming-convention */
 export const SERVICES: Record<string, symbol> = {
@@ -19,5 +19,7 @@ export const SERVICES: Record<string, symbol> = {
   PROVIDER_CONFIG: Symbol('ProviderConfig'),
   QUEUE_FILE_HANDLER: Symbol('QueueFileHandler'),
   JOB_MANAGER_CLIENT: Symbol('JobManagerClient'),
+  FLOW_PRODUCER: Symbol('FlowProducer'),
+  INGESTION_MANAGER: Symbol('IngestionManager'),
 };
 /* eslint-enable @typescript-eslint/naming-convention */
