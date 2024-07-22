@@ -68,5 +68,11 @@ export interface JobStatusParams {
   jobID: string;
 }
 
+export interface LogContext {
+  fileName: string;
+  class: string;
+  function?: string;
+}
+
 export type JobResponse = IJobResponse<JobParameters, TaskParameters>;
 export type CreateJobBody = ICreateJobBody<JobParameters, TaskParameters>;

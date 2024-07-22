@@ -7,12 +7,13 @@ import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { QueueFileHandler } from '../handlers/queueFileHandler';
 import { AppError } from '../common/appError';
 import { SERVICES } from '../common/constants';
-import { Provider, S3Config } from '../common/interfaces';
+import { LogContext, Provider, S3Config } from '../common/interfaces';
 
 @injectable()
 export class S3Provider implements Provider {
   private readonly s3: S3Client;
   private filesCount: number;
+  private readonly logContext: LogContext;
 
   public constructor(
     @inject(SERVICES.LOGGER) protected readonly logger: Logger,
@@ -32,10 +33,16 @@ export class S3Provider implements Provider {
 
     this.s3 = new S3Client(s3ClientConfig);
     this.filesCount = 0;
+
+    this.logContext = {
+      fileName: __filename,
+      class: S3Provider.name,
+    };
   }
 
   @withSpanAsyncV4
   public async streamModelPathsToQueueFile(modelId: string, pathToTileset: string, modelName: string): Promise<number> {
+    const logContext = { ...this.logContext, function: this.streamModelPathsToQueueFile.name };
     /* eslint-disable @typescript-eslint/naming-convention */
     const params: ListObjectsRequest = {
       Bucket: this.s3Config.bucket,
@@ -49,7 +56,13 @@ export class S3Provider implements Provider {
       throw new AppError(httpStatus.NOT_FOUND, `Model ${modelName} doesn't exists in bucket ${this.s3Config.bucket}! Path: ${pathToTileset}`, true);
     }
 
-    this.logger.info({ msg: 'Finished listing the files', filesCount: this.filesCount, modelName, modelId });
+    this.logger.info({
+      msg: 'Finished listing the files',
+      logContext,
+      filesCount: this.filesCount,
+      modelName,
+      modelId,
+    });
     const lastFileCount = this.filesCount;
     this.filesCount = 0;
 
@@ -58,6 +71,7 @@ export class S3Provider implements Provider {
 
   @withSpanAsyncV4
   private async listS3Recursively(modelId: string, params: ListObjectsRequest): Promise<void> {
+    const logContext = { ...this.logContext, function: this.listS3Recursively.name };
     try {
       const listObject = new ListObjectsCommand(params);
       const data = await this.s3.send(listObject);
@@ -80,9 +94,18 @@ export class S3Provider implements Provider {
         await this.listS3Recursively(modelId, nextParams);
       }
 
-      this.logger.debug({ msg: `Listed ${this.filesCount} files`, modelId });
+      this.logger.debug({
+        msg: `Listed ${this.filesCount} files`,
+        logContext,
+        modelId,
+      });
     } catch (error) {
-      this.logger.error({ msg: 'failed in listing the model', modelId, error });
+      this.logger.error({
+        msg: 'failed in listing the model',
+        logContext,
+        modelId,
+        error,
+      });
       this.handleS3Error(this.s3Config.bucket, error);
     }
   }

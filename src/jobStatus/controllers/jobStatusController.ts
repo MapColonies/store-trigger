@@ -1,8 +1,6 @@
-import { Logger } from '@map-colonies/js-logger';
 import { RequestHandler } from 'express';
 import httpStatus from 'http-status-codes';
 import { inject, injectable } from 'tsyringe';
-import { SERVICES } from '../../common/constants';
 import { JobStatusResponse, JobStatusParams } from '../../common/interfaces';
 import { JobStatusManager } from '../models/jobStatusManager';
 
@@ -10,10 +8,7 @@ type GetResourceHandler = RequestHandler<JobStatusParams, JobStatusResponse>;
 
 @injectable()
 export class JobStatusController {
-  public constructor(
-    @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(JobStatusManager) private readonly manager: JobStatusManager
-  ) {}
+  public constructor(@inject(JobStatusManager) private readonly manager: JobStatusManager) {}
 
   public checkStatus: GetResourceHandler = async (req, res, next) => {
     const { jobID } = req.params;

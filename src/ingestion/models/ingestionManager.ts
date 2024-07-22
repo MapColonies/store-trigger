@@ -6,7 +6,7 @@ import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { Tracer, trace } from '@opentelemetry/api';
 import { INFRA_CONVENTIONS, THREE_D_CONVENTIONS } from '@map-colonies/telemetry/conventions';
 import { JOB_TYPE, SERVICES } from '../../common/constants';
-import { CreateJobBody, IConfig, IngestionResponse, JobParameters, Provider, TaskParameters, Payload } from '../../common/interfaces';
+import { CreateJobBody, IConfig, IngestionResponse, JobParameters, Provider, TaskParameters, Payload, LogContext } from '../../common/interfaces';
 import { QueueFileHandler } from '../../handlers/queueFileHandler';
 
 @injectable()
@@ -18,6 +18,7 @@ export class IngestionManager {
   private readonly taskType: string;
   private readonly batchSize: number;
   private readonly maxConcurrency!: number;
+  private readonly logContext: LogContext;
 
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
@@ -42,6 +43,11 @@ export class IngestionManager {
     this.batchSize = config.get<number>('jobManager.task.batches');
     this.taskType = config.get<string>('jobManager.task.type');
     this.maxConcurrency = this.config.get<number>('maxConcurrency');
+
+    this.logContext = {
+      fileName: __filename,
+      class: IngestionManager.name,
+    };
   }
 
   @withSpanAsyncV4
@@ -84,8 +90,10 @@ export class IngestionManager {
 
   @withSpanAsyncV4
   public async createModel(payload: Payload, jobId: string): Promise<void> {
+    const logContext = { ...this.logContext, function: this.createModel.name };
     this.logger.info({
       msg: 'Creating job for model',
+      logContext,
       modelId: payload.modelId,
       modelName: payload.metadata.productName,
       provider: this.providerName,
@@ -98,7 +106,12 @@ export class IngestionManager {
       [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: payload.modelId,
     });
 
-    this.logger.debug({ msg: 'Starts writing content to queue file', modelId: payload.modelId, modelName: payload.metadata.productName });
+    this.logger.debug({
+      msg: 'Starts writing content to queue file',
+      logContext,
+      modelId: payload.modelId,
+      modelName: payload.metadata.productName,
+    });
     await this.queueFileHandler.createQueueFile(payload.modelId);
 
     try {
@@ -110,22 +123,39 @@ export class IngestionManager {
       );
       this.logger.debug({
         msg: 'Finished writing content to queue file. Creating Tasks',
+        logContext,
         modelId: payload.modelId,
         modelName: payload.metadata.productName,
       });
 
       const tasks = this.createTasks(this.batchSize, payload.modelId);
-      this.logger.info({ msg: 'Tasks created successfully', modelId: payload.modelId, modelName: payload.metadata.productName });
+      this.logger.info({
+        msg: 'Tasks created successfully',
+        logContext,
+        modelId: payload.modelId,
+        modelName: payload.metadata.productName,
+      });
 
       await this.createTasksForJob(jobId, tasks, this.maxConcurrency);
       await this.updateFileCountAndStatusOfJob(jobId, fileCount);
-      this.logger.info({ msg: 'Job created successfully', modelId: payload.modelId, modelName: payload.metadata.productName });
+      this.logger.info({
+        msg: 'Job created successfully',
+        logContext,
+        modelId: payload.modelId,
+        modelName: payload.metadata.productName,
+      });
       if (createJobTimerEnd) {
         createJobTimerEnd();
       }
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
     } catch (error) {
-      this.logger.error({ msg: 'Failed in creating tasks', modelId: payload.modelId, modelName: payload.metadata.productName, error });
+      this.logger.error({
+        msg: 'Failed in creating tasks',
+        logContext,
+        modelId: payload.modelId,
+        modelName: payload.metadata.productName,
+        error,
+      });
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
       throw error;
     }
@@ -143,13 +173,19 @@ export class IngestionManager {
 
   @withSpanV4
   private createTasks(batchSize: number, modelId: string): ICreateTaskBody<TaskParameters>[] {
+    const logContext = { ...this.logContext, function: this.createTasks.name };
     const tasks: ICreateTaskBody<TaskParameters>[] = [];
     let chunk: string[] = [];
     let data: string | null = this.queueFileHandler.readline(modelId);
 
     while (data !== null) {
       if (this.isFileInBlackList(data)) {
-        this.logger.warn({ msg: 'The file is is the black list! Ignored...', file: data, modelId });
+        this.logger.warn({
+          msg: 'The file is is the black list! Ignored...',
+          logContext,
+          file: data,
+          modelId,
+        });
       } else {
         chunk.push(data);
 
