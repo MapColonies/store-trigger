@@ -7,7 +7,7 @@
   },
   "telemetry": {
     "logger": {
-      "level": "info",
+      "level": "debug",
       "prettyPrint": false
     },
     "tracing": {
@@ -44,7 +44,7 @@
     "maxAttempts": 3
   },
   "NFS": {
-    "pvPath": "/Path/To/Models"
+    "pvPath": "/home/netancoh/Desktop/Models"
   },
   "ingestion": {
     "provider": "NFS",

@@ -6,15 +6,15 @@ import { instanceCachingFactory } from 'tsyringe';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import client from 'prom-client';
 import { JobManagerClient } from '@map-colonies/mc-priority-queue';
+import { FlowProducer, Queue } from 'bullmq';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { Provider, ProviderConfig } from './common/interfaces';
 import { tracing } from './common/tracing';
-import { ingestionRouterFactory, INGESTION_ROUTER_SYMBOL } from './ingestion/routes/ingestionRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
-import { jobStatusRouterFactory, JOB_STATUS_ROUTER_SYMBOL } from './jobStatus/routes/jobStatusRouter';
 import { QueueFileHandler } from './handlers/queueFileHandler';
 import { getProvider, getProviderConfig } from './providers/getProvider';
 import { IConfig } from './common/interfaces';
+import { IngestionManager } from './ingestion/ingestionManager';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -42,8 +42,6 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
         },
       },
     },
-    { token: INGESTION_ROUTER_SYMBOL, provider: { useFactory: ingestionRouterFactory } },
-    { token: JOB_STATUS_ROUTER_SYMBOL, provider: { useFactory: jobStatusRouterFactory } },
     {
       token: SERVICES.METRICS_REGISTRY,
       provider: {
@@ -59,6 +57,7 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
         }),
       },
     },
+    { token: SERVICES.INGESTION_MANAGER, provider: { useClass: IngestionManager } },
     {
       token: SERVICES.PROVIDER_CONFIG,
       provider: {
@@ -73,6 +72,20 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
       provider: {
         useFactory: (): Provider => {
           return getProvider(provider);
+        },
+      },
+    },
+    {
+      token: SERVICES.FLOW_PRODUCER,
+      provider: {
+        useFactory: (): FlowProducer => {
+          return new FlowProducer({
+            connection: {
+              host: '127.0.0.1',
+              port: 6379,
+            },
+            prefix: '3D',
+          });
         },
       },
     },

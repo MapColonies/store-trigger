@@ -34,8 +34,8 @@
   "license": "ISC",
   "husky": {
     "hooks": {
-      "pre-commit": "pretty-quick --staged",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+      "pre-commit": "echo \"BLAAAA\" && pretty-quick --staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS && echo BLAAAAAA$HUSKY_GIT_PARAMS"
     }
   },
   "config": {
@@ -60,6 +60,7 @@
     "@opentelemetry/instrumentation-express": "0.32.1",
     "@opentelemetry/instrumentation-http": "0.35.1",
     "@opentelemetry/semantic-conventions": "^1.24.1",
+    "bullmq": "^5.8.2",
     "compression": "^1.7.4",
     "config": "^3.3.9",
     "express": "^4.18.2",

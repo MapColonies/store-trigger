@@ -36,6 +36,7 @@ export interface TaskParameters {
   paths: string[];
   modelId: string;
   lastIndexError: number;
+  numOfTasks: number;
 }
 
 export interface S3Config {
