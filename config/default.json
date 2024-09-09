@@ -46,7 +46,6 @@
       "type": "Ingestion_New_3D"
     },
     "task": {
-      "batches": 100,
       "type": "tilesCopying"
     }
   },

@@ -41,7 +41,7 @@ export class IngestionManager {
     }
 
     this.providerName = this.config.get('storage.provider');
-    this.batchSize = config.get('jobManager.task.batches');
+    this.batchSize = config.get('jobManager.extraConfigs.taskBatches');
     this.taskType = config.get('jobManager.task.type');
     this.maxConcurrency = this.config.get('maxConcurrency');
 
