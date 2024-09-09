@@ -55,7 +55,7 @@ export interface NFSConfig {
 export type ProviderConfig = S3Config | NFSConfig;
 
 export interface IngestionResponse {
-  jobID: string;
+  jobId: string;
   status: OperationStatus;
 }
 
@@ -65,7 +65,7 @@ export interface JobStatusResponse {
 }
 
 export interface JobStatusParams {
-  jobID: string;
+  jobId: string;
 }
 
 export interface LogContext {

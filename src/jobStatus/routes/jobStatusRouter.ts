@@ -6,7 +6,7 @@ const jobStatusRouterFactory: FactoryFunction<Router> = (dependencyContainer) =>
   const router = Router();
   const controller = dependencyContainer.resolve(JobStatusController);
 
-  router.get('/:jobID', controller.checkStatus);
+  router.get('/:jobId', controller.checkStatus);
 
   return router;
 };

@@ -51,8 +51,10 @@ describe('IngestionController on S3', function () {
         const response = await requestSender.create(payload);
 
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        expect(response.body).toHaveProperty('jobID', '1');
+        expect(response.body).toHaveProperty('jobId', '1');
         expect(response.body).toHaveProperty('status', OperationStatus.PENDING);
+
+        expect(response).toSatisfyApiSpec();
       });
     });
 
@@ -65,6 +67,8 @@ describe('IngestionController on S3', function () {
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.body).toHaveProperty('message', 'JobManager is not available');
+
+        expect(response).toSatisfyApiSpec();
       });
     });
   });
@@ -110,8 +114,10 @@ describe('IngestionController on NFS', function () {
         const response = await requestSender.create(payload);
 
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        expect(response.body).toHaveProperty('jobID', '1');
+        expect(response.body).toHaveProperty('jobId', '1');
         expect(response.body).toHaveProperty('status', OperationStatus.PENDING);
+
+        expect(response).toSatisfyApiSpec();
       });
     });
 
@@ -124,6 +130,8 @@ describe('IngestionController on NFS', function () {
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.body).toHaveProperty('message', 'JobManager is not available');
+
+        expect(response).toSatisfyApiSpec();
       });
     });
   });

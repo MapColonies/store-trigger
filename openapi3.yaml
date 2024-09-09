@@ -7,14 +7,14 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 paths:
-  /jobStatus/{jobID}:
+  /jobStatus/{jobId}:
     get:
       operationId: getJobStatus
       tags:
         - jobStatus
       summary: gets the resource
       parameters:
-        - $ref: '#/components/parameters/jobID'
+        - $ref: '#/components/parameters/jobId'
       responses:
         '200':
           description: OK
@@ -24,6 +24,12 @@ paths:
                 $ref: '#/components/schemas/jobStatus'
         '404':
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Unexpected Error
           content:
             application/json:
               schema:
@@ -52,7 +58,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-        5XX:
+        '500':
           description: Unexpected Error
           content:
             application/json:
@@ -60,13 +66,13 @@ paths:
                 $ref: '#/components/schemas/error'
 components:
   parameters:
-    jobID:
+    jobId:
       in: path
-      name: jobID
+      name: jobId
       required: true
       schema:
         type: string
-      description: The jobID for status check
+      description: The jobId for status check
   schemas:
     error:
       type: object

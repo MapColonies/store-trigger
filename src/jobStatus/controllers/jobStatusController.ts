@@ -11,9 +11,9 @@ export class JobStatusController {
   public constructor(@inject(JobStatusManager) private readonly manager: JobStatusManager) {}
 
   public checkStatus: GetResourceHandler = async (req, res, next) => {
-    const { jobID } = req.params;
+    const { jobId } = req.params;
     try {
-      const jobStatus = await this.manager.checkStatus(jobID);
+      const jobStatus = await this.manager.checkStatus(jobId);
       return res.status(httpStatus.OK).json(jobStatus);
     } catch (error) {
       next(error);

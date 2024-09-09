@@ -40,6 +40,8 @@ describe('jobStatusController', function () {
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.body).toHaveProperty('status', OperationStatus.COMPLETED);
         expect(response.body).toHaveProperty('percentage', 100);
+
+        expect(response).toSatisfyApiSpec();
       });
     });
 
@@ -56,6 +58,8 @@ describe('jobStatusController', function () {
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.body).toHaveProperty('message', 'JobManager is not available');
+
+        expect(response).toSatisfyApiSpec();
       });
     });
   });

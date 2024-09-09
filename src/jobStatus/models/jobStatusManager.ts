@@ -13,8 +13,8 @@ export class JobStatusManager {
   ) {}
 
   @withSpanAsyncV4
-  public async checkStatus(jobID: string): Promise<JobStatusResponse> {
-    const job: IJobResponse<JobParameters, TaskParameters> = await this.jobManagerClient.getJob(jobID);
+  public async checkStatus(jobId: string): Promise<JobStatusResponse> {
+    const job: IJobResponse<JobParameters, TaskParameters> = await this.jobManagerClient.getJob(jobId);
 
     const jobResponse: JobStatusResponse = {
       percentage: job.percentage,

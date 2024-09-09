@@ -33,7 +33,7 @@ export class IngestionController {
         modelName: payload.metadata.productName,
       });
       res.status(httpStatus.CREATED).json(jobCreated);
-      await this.manager.createModel(payload, jobCreated.jobID);
+      await this.manager.createModel(payload, jobCreated.jobId);
     } catch (error) {
       if (error instanceof AppError) {
         this.logger.error({

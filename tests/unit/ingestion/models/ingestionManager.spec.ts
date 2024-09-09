@@ -47,7 +47,7 @@ describe('ingestionManager', () => {
     it('returns create job response', async () => {
       // Arrange
       const response: IngestionResponse = {
-        jobID: '1234',
+        jobId: '1234',
         status: OperationStatus.PENDING,
       };
       jobManagerClientMock.createJob.mockResolvedValue({ id: '1234', status: OperationStatus.PENDING });

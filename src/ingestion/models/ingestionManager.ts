@@ -81,7 +81,7 @@ export class IngestionManager {
     });
 
     const res: IngestionResponse = {
-      jobID: jobResponse.id,
+      jobId: jobResponse.id,
       status: OperationStatus.PENDING,
     };
 
