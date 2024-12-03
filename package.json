@@ -1,6 +1,6 @@
 {
   "name": "store-trigger",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "This service responsible for creating job and their tasks.",
   "main": "./src/index.ts",
   "scripts": {
