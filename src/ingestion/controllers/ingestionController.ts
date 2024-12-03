@@ -34,16 +34,17 @@ export class IngestionController {
       });
       res.status(httpStatus.CREATED).json(jobCreated);
       await this.manager.createModel(payload, jobCreated.jobId);
-    } catch (error) {
-      if (error instanceof AppError) {
+    } catch (err) {
+      if (err instanceof AppError) {
         this.logger.error({
-          msg: `Failed in ingesting a new model! Reason: ${error.message}`,
+          msg: `Failed in ingesting a new model! Reason: ${err.message}`,
+          err,
           logContext,
           modelId: payload.modelId,
           modelName: payload.metadata.productName,
         });
       }
-      return next(error);
+      return next(err);
     }
   };
 }

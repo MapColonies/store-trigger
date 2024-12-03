@@ -148,16 +148,16 @@ export class IngestionManager {
         createJobTimerEnd();
       }
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'Failed in creating tasks',
         logContext,
         modelId: payload.modelId,
         modelName: payload.metadata.productName,
-        error,
+        err,
       });
       await this.queueFileHandler.deleteQueueFile(payload.modelId);
-      throw error;
+      throw err;
     }
   }
 
