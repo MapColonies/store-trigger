@@ -32,13 +32,13 @@ export class NFSProvider implements Provider {
     const modelPath = `${this.config.pvPath}/${pathToTileset}`;
     try {
       await fs.access(modelPath);
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'failed to access the folder',
         logContext,
         modelId,
         modelName,
-        error,
+        err,
       });
       throw new AppError(httpStatus.NOT_FOUND, `Model ${modelName} doesn't exists in the agreed folder. Path: ${modelPath}`, true);
     }
@@ -63,13 +63,13 @@ export class NFSProvider implements Provider {
           try {
             await this.queueFileHandler.writeFileNameToQueueFile(modelId, `${folders[0]}/${file}`);
             filesCount++;
-          } catch (error) {
+          } catch (err) {
             this.logger.error({
               msg: `Didn't write the file: '${folders[0]}/${file}' in FS.`,
               logContext,
               modelId,
               modelName,
-              error,
+              err,
             });
             throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, 'problem with queueFileHandler', false);
           }

@@ -99,14 +99,14 @@ export class S3Provider implements Provider {
         logContext,
         modelId,
       });
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'failed in listing the model',
         logContext,
         modelId,
-        error,
+        err,
       });
-      this.handleS3Error(this.s3Config.bucket, error);
+      this.handleS3Error(this.s3Config.bucket, err);
     }
   }
 
