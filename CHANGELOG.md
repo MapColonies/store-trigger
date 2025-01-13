@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.4](https://github.com/MapColonies/store-trigger/compare/v1.5.3...v1.5.4) (2025-01-13)
+
+
+### Bug Fixes
+
+* support 3D coordinate ([#43](https://github.com/MapColonies/store-trigger/issues/43)) ([b4d2bfb](https://github.com/MapColonies/store-trigger/commit/b4d2bfb827e98e36c5fc16e80cb8a595480dbe67))
+
 ### [1.5.3](https://github.com/MapColonies/store-trigger/compare/v1.5.2...v1.5.3) (2024-12-03)
 
 ### [1.5.2](https://github.com/MapColonies/store-trigger/compare/v1.5.1...v1.5.2) (2024-09-09)

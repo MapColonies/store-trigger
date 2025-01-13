@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: 3d store-trigger
   description: Ingesting and exporting 3d model to S3/NFS
-  version: 1.5.3
+  version: 1.5.4
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
