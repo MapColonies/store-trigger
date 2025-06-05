@@ -10,6 +10,8 @@ export const NODE_VERSION = process.versions.node;
 
 export const JOB_TYPE = config.get<string>('jobManager.job.type');
 
+export const DOMAIN = '3D';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 export const SERVICES: Record<string, symbol> = {
   LOGGER: Symbol('Logger'),
