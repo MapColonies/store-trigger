@@ -43,6 +43,23 @@ describe('ingestionManager', () => {
     register.clear();
   });
 
+  describe('getActiveIngestionJobs Service', () => {
+    it('returns create job response', async () => {
+      const jobParameters = createJobParameters();
+      const expectedResponse = [jobParameters];
+      jobManagerClientMock.findJobs.mockResolvedValue(expectedResponse);
+      const activeJobsResponse = await ingestionManager.getActiveIngestionJobs();
+      expect(expectedResponse).toMatchObject(activeJobsResponse);
+    });
+
+    it('rejects if jobManager fails', async () => {
+      // Arrange
+      jobManagerClientMock.findJobs.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
+      // Act && Assert
+      await expect(ingestionManager.getActiveIngestionJobs()).rejects.toThrow(AppError);
+    });
+  });
+
   describe('createJob Service', () => {
     it('returns create job response', async () => {
       // Arrange

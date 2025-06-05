@@ -1,11 +1,11 @@
 import { Logger } from '@map-colonies/js-logger';
-import { ICreateTaskBody, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { ICreateTaskBody, IFindJobsByCriteriaBody, IJobResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
 import client from 'prom-client';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { Tracer, trace } from '@opentelemetry/api';
 import { INFRA_CONVENTIONS, THREE_D_CONVENTIONS } from '@map-colonies/telemetry/conventions';
-import { JOB_TYPE, SERVICES } from '../../common/constants';
+import { DOMAIN, JOB_TYPE, SERVICES } from '../../common/constants';
 import { CreateJobBody, IConfig, IngestionResponse, JobParameters, Provider, TaskParameters, Payload, LogContext } from '../../common/interfaces';
 import { QueueFileHandler } from '../../handlers/queueFileHandler';
 
@@ -51,6 +51,19 @@ export class IngestionManager {
   }
 
   @withSpanAsyncV4
+  public async getActiveIngestionJobs(): Promise<IJobResponse<JobParameters, TaskParameters>[]> {
+    const findJobspayload: IFindJobsByCriteriaBody = {
+      types: [JOB_TYPE],
+      statuses: [OperationStatus.PENDING, OperationStatus.IN_PROGRESS],
+      domain: DOMAIN,
+      shouldReturnTasks: false,
+      shouldReturnAvailableActions: false,
+    };
+    const jobsResponse = await this.jobManagerClient.findJobs<JobParameters, TaskParameters>(findJobspayload);
+    return jobsResponse;
+  }
+
+  @withSpanAsyncV4
   public async createJob(payload: Payload): Promise<IngestionResponse> {
     const job: CreateJobBody = {
       resourceId: payload.modelId,
@@ -68,7 +81,7 @@ export class IngestionManager {
       percentage: 0,
       producerName: payload.metadata.producerName,
       status: OperationStatus.PENDING,
-      domain: '3D',
+      domain: DOMAIN,
     };
 
     const jobResponse = await this.jobManagerClient.createJob<JobParameters, TaskParameters>(job);

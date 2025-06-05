@@ -109,6 +109,7 @@ export const queueFileHandlerMock = {
 
 export const jobManagerClientMock = {
   createJob: jest.fn(),
+  findJobs: jest.fn(),
   createTaskForJob: jest.fn(),
   getJob: jest.fn(),
   updateJob: jest.fn(),
