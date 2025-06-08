@@ -162,12 +162,27 @@ describe('IngestionController on NFS', function () {
 
     describe('Bad Path', function () {
       // All requests with status code of 400
-      it('should return 400 status code if a network exception happens in job manager', async function () {
+      it('should return 400 status code if a job with same name exists in job manager', async function () {
+        const payload = createPayload('bla');
+        const payload2 = createPayload('bla2');
+        const jobPayload = createJobPayload(payload);
+        jobPayload.parameters.metadata.productName = payload.metadata.productName;
+        jobManagerClientMock.createJob.mockResolvedValueOnce({ id: '1', productName: payload.metadata.productName });
+        jobManagerClientMock.findJobs.mockResolvedValueOnce([jobPayload, payload2]);
+
+        const response = await requestSender.create(payload);
+
+        expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
+        expect(response.body).toHaveProperty('message', 'Job Validation Failed');
+        expect(response).toSatisfyApiSpec();
+      });
+
+      it('should return 400 status code if job manager returns not an array object', async function () {
         const payload = createPayload('bla');
         const jobPayload = createJobPayload(payload);
         jobPayload.parameters.metadata.productName = payload.metadata.productName;
         jobManagerClientMock.createJob.mockResolvedValueOnce({ id: '1', productName: payload.metadata.productName });
-        jobManagerClientMock.findJobs.mockResolvedValueOnce([jobPayload]);
+        jobManagerClientMock.findJobs.mockResolvedValueOnce({});
 
         const response = await requestSender.create(payload);
 
