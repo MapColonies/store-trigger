@@ -1,4 +1,5 @@
 openapi: 3.0.1
+security: []
 info:
   title: 3d store-trigger
   description: Ingesting and exporting 3d model to S3/NFS
