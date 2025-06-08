@@ -18,7 +18,7 @@ describe('IngestionController on S3', function () {
     findJobs: jest.fn(),
   };
 
-  beforeAll(() => {
+  beforeEach(() => {
     register.clear();
     const app = getApp({
       override: [
@@ -38,8 +38,10 @@ describe('IngestionController on S3', function () {
     requestSender = new IngestionRequestSender(app);
   });
 
-  afterAll(function () {
+  afterEach(function () {
     container.reset();
+    jest.clearAllMocks();
+    jest.resetAllMocks();
     jest.restoreAllMocks();
   });
 
@@ -48,7 +50,7 @@ describe('IngestionController on S3', function () {
       it('should return 201 status code and the added model', async function () {
         const payload = createPayload('model1');
         jobManagerClientMock.createJob.mockResolvedValueOnce({ id: '1' });
-        jobManagerClientMock.findJobs.mockResolvedValue([]);
+        jobManagerClientMock.findJobs.mockResolvedValueOnce([]);
 
         const response = await requestSender.create(payload);
 
@@ -60,11 +62,28 @@ describe('IngestionController on S3', function () {
       });
     });
 
+    describe('Bad Path', function () {
+      // All requests with status code of 400
+      it('should return 400 status code if a network exception happens in job manager', async function () {
+        const payload = createPayload('bla');
+        const jobPayload = createJobPayload(payload);
+        jobPayload.parameters.metadata.productName = payload.metadata.productName;
+        jobManagerClientMock.createJob.mockResolvedValueOnce({ id: '1', productName: payload.metadata.productName });
+        jobManagerClientMock.findJobs.mockResolvedValueOnce([jobPayload]);
+
+        const response = await requestSender.create(payload);
+
+        expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
+        expect(response.body).toHaveProperty('message', 'Job Validation Failed');
+        expect(response).toSatisfyApiSpec();
+      });
+    });
+
     describe('Sad Path 😥', function () {
       it('should return 500 status code if a network exception happens in job manager - createJob', async function () {
         const payload = createPayload('bla');
         jobManagerClientMock.createJob.mockRejectedValueOnce(new Error('JobManager is not available'));
-        jobManagerClientMock.findJobs.mockResolvedValue([]);
+        jobManagerClientMock.findJobs.mockResolvedValueOnce([]);
 
         const response = await requestSender.create(payload);
 
@@ -97,7 +116,7 @@ describe('IngestionController on NFS', function () {
     findJobs: jest.fn(),
   };
 
-  beforeAll(() => {
+  beforeEach(() => {
     register.clear();
     const app = getApp({
       override: [
@@ -117,8 +136,10 @@ describe('IngestionController on NFS', function () {
     requestSender = new IngestionRequestSender(app);
   });
 
-  afterAll(function () {
+  afterEach(function () {
     container.reset();
+    jest.clearAllMocks();
+    jest.resetAllMocks();
     jest.restoreAllMocks();
   });
 
@@ -127,7 +148,7 @@ describe('IngestionController on NFS', function () {
       it('should return 201 status code and the added model', async function () {
         const payload = createPayload('model1');
         jobManagerClientMock.createJob.mockResolvedValueOnce({ id: '1' });
-        jobManagerClientMock.findJobs.mockResolvedValue([]);
+        jobManagerClientMock.findJobs.mockResolvedValueOnce([]);
 
         const response = await requestSender.create(payload);
 
@@ -146,7 +167,7 @@ describe('IngestionController on NFS', function () {
         const jobPayload = createJobPayload(payload);
         jobPayload.parameters.metadata.productName = payload.metadata.productName;
         jobManagerClientMock.createJob.mockResolvedValueOnce({ id: '1', productName: payload.metadata.productName });
-        jobManagerClientMock.findJobs.mockResolvedValue([jobPayload]);
+        jobManagerClientMock.findJobs.mockResolvedValueOnce([jobPayload]);
 
         const response = await requestSender.create(payload);
 
@@ -157,10 +178,10 @@ describe('IngestionController on NFS', function () {
     });
 
     describe('Sad Path 😥', function () {
-      it('should return 500 status code if a network exception happens in job manager', async function () {
+      it('should return 500 status code if a network exception happens in job manager - createJob', async function () {
         const payload = createPayload('bla');
         jobManagerClientMock.createJob.mockRejectedValueOnce(new Error('JobManager is not available'));
-        jobManagerClientMock.findJobs.mockResolvedValue([]);
+        jobManagerClientMock.findJobs.mockResolvedValueOnce([]);
 
         const response = await requestSender.create(payload);
 
