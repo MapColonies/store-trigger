@@ -55,8 +55,10 @@ export class IngestionController {
       await this.manager.createModel(payload, jobCreated.jobId);
     } catch (err) {
       if (err instanceof AppError) {
+        const errorMessage = err as { message: string | undefined };
+        const message = errorMessage.message ?? 'failed to create job';
         this.logger.error({
-          msg: `Failed in ingesting a new model! Reason: ${err.message}`,
+          msg: `Failed in ingesting a new model! Reason: ${message}`,
           err,
           logContext,
           modelId: payload.modelId,
