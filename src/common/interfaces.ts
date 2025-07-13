@@ -20,11 +20,20 @@ export interface Payload {
   metadata: Layer3DMetadata;
 }
 
+export interface DeletePayload {
+  modelId: string; // internalId in job (catalogId)
+  productId: string; // resourceId in job
+  productVersion: number;
+  productName: string;
+  productType: string;
+  producerName: string;
+}
+
 export interface Provider {
   streamModelPathsToQueueFile: (modelId: string, pathToTileset: string, productName: string) => Promise<number>;
 }
 
-export interface JobParameters {
+export interface IngestionJobParameters {
   tilesetFilename: string;
   modelId: string;
   metadata: Layer3DMetadata;
@@ -32,10 +41,19 @@ export interface JobParameters {
   pathToTileset: string;
 }
 
-export interface TaskParameters {
+export interface IngestionTaskParameters {
   paths: string[];
   modelId: string;
   lastIndexError: number;
+}
+
+export interface DeleteJobParameters {
+  modelId: string;
+}
+
+export interface DeleteTaskParameters {
+  modelId: string;
+  blockDuplication?: boolean;
 }
 
 export interface S3Config {
@@ -54,7 +72,7 @@ export interface NFSConfig {
 
 export type ProviderConfig = S3Config | NFSConfig;
 
-export interface IngestionResponse {
+export interface JobOperationResponse {
   jobId: string;
   status: OperationStatus;
 }
@@ -74,5 +92,6 @@ export interface LogContext {
   function?: string;
 }
 
-export type JobResponse = IJobResponse<JobParameters, TaskParameters>;
-export type CreateJobBody = ICreateJobBody<JobParameters, TaskParameters>;
+export type JobResponse = IJobResponse<IngestionJobParameters, IngestionTaskParameters>;
+export type CreateIngestionJobBody = ICreateJobBody<IngestionJobParameters, IngestionTaskParameters>;
+export type CreatDeleteJobBody = ICreateJobBody<DeleteJobParameters, DeleteTaskParameters>;

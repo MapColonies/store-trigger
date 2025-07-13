@@ -11,7 +11,7 @@ import { collectMetricsExpressMiddleware } from '@map-colonies/telemetry';
 import { Registry } from 'prom-client';
 import { SERVICES } from './common/constants';
 import { IConfig } from './common/interfaces';
-import { INGESTION_ROUTER_SYMBOL } from './ingestion/routes/ingestionRouter';
+import { JOB_OPERATIONS_ROUTER_SYMBOL } from './jobOperations/routes/jobOperationsRouter';
 import { JOB_STATUS_ROUTER_SYMBOL } from './jobStatus/routes/jobStatusRouter';
 import { handleError } from './common/handleError';
 
@@ -22,7 +22,7 @@ export class ServerBuilder {
   public constructor(
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(INGESTION_ROUTER_SYMBOL) private readonly ingestionRouter: Router,
+    @inject(JOB_OPERATIONS_ROUTER_SYMBOL) private readonly jobOperationsRouter: Router,
     @inject(JOB_STATUS_ROUTER_SYMBOL) private readonly jobStatusRouter: Router,
     @inject(SERVICES.METRICS_REGISTRY) private readonly metricsRegistry?: Registry
   ) {
@@ -47,7 +47,7 @@ export class ServerBuilder {
   }
 
   private buildRoutes(): void {
-    this.serverInstance.use('/ingestion', this.ingestionRouter);
+    this.serverInstance.use('/jobOperations', this.jobOperationsRouter);
     this.serverInstance.use('/jobStatus', this.jobStatusRouter);
     this.buildDocsRoutes();
   }

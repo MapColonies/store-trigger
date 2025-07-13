@@ -52,12 +52,14 @@
   },
   "jobManager": {
     "url": "http://127.0.0.1:8080",
-    "job": {
-      "type": "Ingestion_New_3D"
+    "ingestion": {
+      "jobType": "Ingestion_New_3D",
+      "taskType": "tilesCopying",
+      "batches": 100
     },
-    "task": {
-      "batches": 100,
-      "type": "tilesCopying"
+    "delete": {
+      "jobType": "Delete_3D",
+      "taskType": "deleteModel"
     }
   },
   "maxConcurrency": 5

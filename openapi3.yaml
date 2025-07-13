@@ -35,17 +35,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-  /ingestion:
+  /jobOperations/ingestion:
     post:
       operationId: createModel
       tags:
-        - ingestion
-      summary: creates a new job and invokes a new model ingestion flow
+        - jobOperations
+      summary: creates a new "ingestion" job to invokes a new model "ingestion" flow
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/payload'
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /jobOperations/delete:
+    post:
+      operationId: deleteModel
+      tags:
+        - jobOperations
+      summary: creates a new "delete" job to invokes a "delete" flow
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/delete-payload'
       responses:
         '201':
           description: created
@@ -107,6 +137,38 @@ components:
           $ref: >-
             ./Schema/3dCatalog/3dMetadata.yaml#/components/schemas/ingestion-payload
       additionalProperties: false
+    delete-payload:
+      type: object
+      description: 3d tiles ingestion payload
+      required:
+        - modelId
+        - productId
+        - productVersion
+        - productName
+        - productType
+        - producerName
+      properties:
+        modelId:
+          type: string
+          description: ID of model in catalog
+        productId:
+          type: string
+          description: Product ID of model in catalog
+        productVersion:
+          type: integer
+          example: 1
+          description: Number of version
+        productName:
+          type: string
+          maxLength: 120
+          description: Name of product
+        productType:
+          type: string
+          description: Type of product (3DPhotoRealistic)
+          example: 3DPhotoRealistic
+        producerName:
+          type: string
+          description: The name of the producer (product owner)
     createResponse:
       type: object
       description: The ingestion response

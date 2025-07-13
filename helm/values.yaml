@@ -101,12 +101,13 @@ NFS:
 
 jobManager:
   url: 
-  job:
-    type: 
-  task:
-    type: ''
+  ingestion:
+    jobType:
+    taskType:
     batches: 
-
+  delete:
+    jobType:
+    taskType:
 env:
   port: 80
   targetPort: 8080

@@ -74,15 +74,17 @@
   },
   "jobManager": {
     "url": "JOB_MANAGER_URL",
-    "job": {
-      "type": "JOB_TYPE"
-    },
-    "task": {
+    "ingestion": {
+      "jobType": "JOB_INGESTION_TYPE",
+      "taskType": "TASK_INGESTION_TYPE",
       "batches": {
-        "__name": "TASK_BATCHES",
+        "__name": "INGESTION_TASK_BATCHES",
         "__format": "number"
-      },
-      "type": "TASK_TYPE"
+      }
+    },
+    "delete": {
+      "jobType": "JOB_DELETE_TYPE",
+      "taskType": "TASK_DELETE_TYPE"
     }
   },
   "maxConcurrency": "MAX_CONCURRENCY"
