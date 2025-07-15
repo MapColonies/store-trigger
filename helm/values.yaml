@@ -2,7 +2,7 @@ global:
   cloudProvider:
     dockerRegistryUrl: registry
     flavor: openshift
-    imagePullSecretName: 
+    imagePullSecretName:
   imagePullPolicy: IfNotPresent
   tracing: {}
   metrics: {}
@@ -14,33 +14,33 @@ global:
     accessKey: ''
     secretAccessKey: ''
     server: ''
-    serverPort: 
+    serverPort:
     serverProto: ''
     bucket: ''
     region: ''
     style: ''
     sslEnabled: false
-    maxAttempts: 
-  
+    maxAttempts:
+
   NFS:
     name: ''
     pv_path: ''
     sub_path: ''
 
   jobManager:
-    url: 
+    url:
     job:
-      type: 
+      type:
     task:
       type: ''
-      batches: 
+      batches:
 
 cloudProvider:
-    dockerRegistryUrl: 
-    flavor: 
-    imagePullSecretName: 
-imagePullPolicy: 
-environment: 
+    dockerRegistryUrl:
+    flavor:
+    imagePullSecretName:
+imagePullPolicy:
+environment:
 
 image:
   repository: store-trigger
@@ -66,9 +66,9 @@ readinessProbe:
 ca:
   enabled: false
   useExternal: false
-  secretName: 
-  path: 
-  key: 
+  secretName:
+  path:
+  key:
 
 extraVolumes: {}
 
@@ -78,31 +78,31 @@ sidecars: {}
 
 podAnnotations: {}
 
-provider: 
+provider:
 
 S3:
   accessKey: ''
   secretAccessKey: ''
   server: ''
-  serverPort: 
+  serverPort:
   serverProto: ''
   bucket: ''
   region: ''
   style: ''
   sslEnabled: false
-  maxAttempts: 
+  maxAttempts:
 
-NFS:  
+NFS:
   name: ''
   pv_path: ''
   sub_path: ''
 
 jobManager:
-  url: 
+  url:
   ingestion:
     jobType:
     taskType:
-    batches: 
+    batches:
   delete:
     jobType:
     taskType:
@@ -136,7 +136,7 @@ resources:
 route:
   enabled: false
   path: /
-  host: 
+  host:
   timeout:
     enabled: false    # defaults to 30s by openshift
     duration: 60s    # supported units (us, ms, s, m, h, d)
