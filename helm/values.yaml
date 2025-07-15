@@ -1,17 +1,15 @@
 global:
   cloudProvider:
-    dockerRegistryUrl: 'registry'
+    dockerRegistryUrl: registry
     flavor: openshift
     imagePullSecretName: 
   imagePullPolicy: IfNotPresent
   tracing: {}
   metrics: {}
-  environment: 'development'
-
+  environment: development
   providers:
     source: NFS
-    destination: S3 
-  
+    destination: S3
   S3:
     accessKey: ''
     secretAccessKey: ''
@@ -24,7 +22,7 @@ global:
     sslEnabled: false
     maxAttempts: 
   
-  NFS:  
+  NFS:
     name: ''
     pv_path: ''
     sub_path: ''
@@ -50,7 +48,7 @@ image:
 
 nodePort: 30030
 replicaCount: 1
-revisionHistoryLimit: 5 # Amount of revisions we keep
+revisionHistoryLimit: 5   # Amount of revisions we keep
 
 livenessProbe:
   enabled: true
@@ -140,8 +138,8 @@ route:
   path: /
   host: 
   timeout:
-    enabled: false # defaults to 30s by openshift
-    duration: 60s # supported units (us, ms, s, m, h, d)
+    enabled: false    # defaults to 30s by openshift
+    duration: 60s    # supported units (us, ms, s, m, h, d)
   rewriteTarget: ''
   tls:
     enabled: true
