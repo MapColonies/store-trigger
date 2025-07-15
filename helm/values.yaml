@@ -36,9 +36,9 @@ global:
       batches:
 
 cloudProvider:
-    dockerRegistryUrl:
-    flavor:
-    imagePullSecretName:
+  dockerRegistryUrl:
+  flavor:
+  imagePullSecretName:
 imagePullPolicy:
 environment:
 
