@@ -29,11 +29,13 @@ global:
 
   jobManager:
     url:
-    job:
-      type:
-    task:
-      type: ''
-      batches:
+    ingestion:
+      jobType: ''
+      taskType: ''
+      batches: 
+    delete:
+      jobType: ''
+      taskType: ''
 
 cloudProvider:
   dockerRegistryUrl:
