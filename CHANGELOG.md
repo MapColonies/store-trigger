@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/MapColonies/store-trigger/compare/v1.5.7...v2.0.0) (2025-07-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* support delete record (#47)
+
+### Features
+
+* support delete record ([#47](https://github.com/MapColonies/store-trigger/issues/47)) ([4f98e31](https://github.com/MapColonies/store-trigger/commit/4f98e315a88ab6158a638b89ad5991ff7082eb52))
+
 ### [1.5.7](https://github.com/MapColonies/store-trigger/compare/v1.5.6...v1.5.7) (2025-06-11)
 
 ### [1.5.6](https://github.com/MapColonies/store-trigger/compare/v1.5.5...v1.5.6) (2025-06-08)
