@@ -8,7 +8,10 @@ export const DEFAULT_SERVER_PORT = 80;
 
 export const NODE_VERSION = process.versions.node;
 
-export const JOB_TYPE = config.get<string>('jobManager.job.type');
+export const INGESTION_JOB_TYPE = config.get<string>('jobManager.ingestion.jobType');
+export const INGESTION_TASK_TYPE = config.get<string>('jobManager.ingestion.taskType');
+export const DELETE_JOB_TYPE = config.get<string>('jobManager.delete.jobType');
+export const DELETE_TASK_TYPE = config.get<string>('jobManager.delete.taskType');
 
 export const DOMAIN = '3D';
 

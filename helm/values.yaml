@@ -1,48 +1,48 @@
 global:
   cloudProvider:
-    dockerRegistryUrl: 
+    dockerRegistryUrl: registry
     flavor: openshift
-    imagePullSecretName: 
+    imagePullSecretName:
   imagePullPolicy: IfNotPresent
   tracing: {}
   metrics: {}
-  environment: 'development'
-
+  environment: development
   providers:
     source: NFS
-    destination: S3 
-  
+    destination: S3
   S3:
     accessKey: ''
     secretAccessKey: ''
     server: ''
-    serverPort: 
+    serverPort:
     serverProto: ''
     bucket: ''
     region: ''
     style: ''
     sslEnabled: false
-    maxAttempts: 
-  
-  NFS:  
+    maxAttempts:
+
+  NFS:
     name: ''
     pv_path: ''
     sub_path: ''
 
   jobManager:
-    url: 
-    job:
-      type: 
-    task:
-      type: ''
-      batches: 
+    url:
+    ingestion:
+      jobType: ''
+      taskType: ''
+      batches:
+    delete:
+      jobType: ''
+      taskType: ''
 
 cloudProvider:
-    dockerRegistryUrl: 
-    flavor: 
-    imagePullSecretName: 
-imagePullPolicy: 
-environment: 
+  dockerRegistryUrl:
+  flavor:
+  imagePullSecretName:
+imagePullPolicy:
+environment:
 
 image:
   repository: store-trigger
@@ -50,7 +50,7 @@ image:
 
 nodePort: 30030
 replicaCount: 1
-revisionHistoryLimit: 5 # Amount of revisions we keep
+revisionHistoryLimit: 5   # Amount of revisions we keep
 
 livenessProbe:
   enabled: true
@@ -68,9 +68,9 @@ readinessProbe:
 ca:
   enabled: false
   useExternal: false
-  secretName: 
-  path: 
-  key: 
+  secretName:
+  path:
+  key:
 
 extraVolumes: {}
 
@@ -80,33 +80,34 @@ sidecars: {}
 
 podAnnotations: {}
 
-provider: 
+provider:
 
 S3:
   accessKey: ''
   secretAccessKey: ''
   server: ''
-  serverPort: 
+  serverPort:
   serverProto: ''
   bucket: ''
   region: ''
   style: ''
   sslEnabled: false
-  maxAttempts: 
+  maxAttempts:
 
-NFS:  
+NFS:
   name: ''
   pv_path: ''
   sub_path: ''
 
 jobManager:
-  url: 
-  job:
-    type: 
-  task:
-    type: ''
-    batches: 
-
+  url:
+  ingestion:
+    jobType:
+    taskType:
+    batches:
+  delete:
+    jobType:
+    taskType:
 env:
   port: 80
   targetPort: 8080
@@ -137,10 +138,10 @@ resources:
 route:
   enabled: false
   path: /
-  host: 
+  host:
   timeout:
-    enabled: false # defaults to 30s by openshift
-    duration: 60s # supported units (us, ms, s, m, h, d)
+    enabled: false    # defaults to 30s by openshift
+    duration: 60s    # supported units (us, ms, s, m, h, d)
   rewriteTarget: ''
   tls:
     enabled: true

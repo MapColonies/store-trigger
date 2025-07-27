@@ -3,7 +3,7 @@ import { inject, injectable } from 'tsyringe';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../../common/constants';
-import { JobParameters, JobStatusResponse, TaskParameters } from '../../common/interfaces';
+import { IngestionJobParameters, JobStatusResponse, IngestionTaskParameters } from '../../common/interfaces';
 
 @injectable()
 export class JobStatusManager {
@@ -14,7 +14,7 @@ export class JobStatusManager {
 
   @withSpanAsyncV4
   public async checkStatus(jobId: string): Promise<JobStatusResponse> {
-    const job: IJobResponse<JobParameters, TaskParameters> = await this.jobManagerClient.getJob(jobId);
+    const job: IJobResponse<IngestionJobParameters, IngestionTaskParameters> = await this.jobManagerClient.getJob(jobId);
 
     const jobResponse: JobStatusResponse = {
       percentage: job.percentage,

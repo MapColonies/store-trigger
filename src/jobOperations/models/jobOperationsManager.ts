@@ -5,17 +5,29 @@ import client from 'prom-client';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { Tracer, trace } from '@opentelemetry/api';
 import { INFRA_CONVENTIONS, THREE_D_CONVENTIONS } from '@map-colonies/telemetry/conventions';
-import { DOMAIN, JOB_TYPE, SERVICES } from '../../common/constants';
-import { CreateJobBody, IConfig, IngestionResponse, JobParameters, Provider, TaskParameters, Payload, LogContext } from '../../common/interfaces';
+import { DELETE_JOB_TYPE, DELETE_TASK_TYPE, DOMAIN, INGESTION_JOB_TYPE, INGESTION_TASK_TYPE, SERVICES } from '../../common/constants';
+import {
+  CreateIngestionJobBody,
+  IConfig,
+  JobOperationResponse,
+  IngestionJobParameters,
+  Provider,
+  IngestionTaskParameters,
+  Payload,
+  LogContext,
+  CreatDeleteJobBody,
+  DeleteTaskParameters,
+  DeleteJobParameters,
+  DeletePayload,
+} from '../../common/interfaces';
 import { QueueFileHandler } from '../../handlers/queueFileHandler';
 
 @injectable()
-export class IngestionManager {
+export class JobOperationsManager {
   //metrics
   private readonly jobsHistogram?: client.Histogram<'type'>;
 
   private readonly providerName: string;
-  private readonly taskType: string;
   private readonly batchSize: number;
   private readonly maxConcurrency!: number;
   private readonly logContext: LogContext;
@@ -40,35 +52,34 @@ export class IngestionManager {
     }
 
     this.providerName = this.config.get<string>('ingestion.provider');
-    this.batchSize = config.get<number>('jobManager.task.batches');
-    this.taskType = config.get<string>('jobManager.task.type');
+    this.batchSize = config.get<number>('jobManager.ingestion.batches');
     this.maxConcurrency = this.config.get<number>('maxConcurrency');
 
     this.logContext = {
       fileName: __filename,
-      class: IngestionManager.name,
+      class: JobOperationsManager.name,
     };
   }
 
   @withSpanAsyncV4
-  public async getActiveIngestionJobs(): Promise<IJobResponse<JobParameters, TaskParameters>[]> {
+  public async getActiveIngestionJobs(): Promise<IJobResponse<IngestionJobParameters, IngestionTaskParameters>[]> {
     const findJobspayload: IFindJobsByCriteriaBody = {
-      types: [JOB_TYPE],
+      types: [INGESTION_JOB_TYPE],
       statuses: [OperationStatus.PENDING, OperationStatus.IN_PROGRESS],
       domain: DOMAIN,
       shouldReturnTasks: false,
       shouldReturnAvailableActions: false,
     };
-    const jobsResponse = await this.jobManagerClient.findJobs<JobParameters, TaskParameters>(findJobspayload);
+    const jobsResponse = await this.jobManagerClient.findJobs<IngestionJobParameters, IngestionTaskParameters>(findJobspayload);
     return jobsResponse;
   }
 
   @withSpanAsyncV4
-  public async createJob(payload: Payload): Promise<IngestionResponse> {
-    const job: CreateJobBody = {
+  public async createJob(payload: Payload): Promise<JobOperationResponse> {
+    const job: CreateIngestionJobBody = {
       resourceId: payload.modelId,
       version: '1',
-      type: JOB_TYPE,
+      type: INGESTION_JOB_TYPE,
       parameters: {
         metadata: payload.metadata,
         modelId: payload.modelId,
@@ -84,20 +95,91 @@ export class IngestionManager {
       domain: DOMAIN,
     };
 
-    const jobResponse = await this.jobManagerClient.createJob<JobParameters, TaskParameters>(job);
+    const jobResponse = await this.jobManagerClient.createJob<IngestionJobParameters, IngestionTaskParameters>(job);
 
     const spanActive = trace.getActiveSpan();
     spanActive?.setAttributes({
       [INFRA_CONVENTIONS.infra.jobManagement.jobId]: jobResponse.id,
-      [INFRA_CONVENTIONS.infra.jobManagement.jobType]: JOB_TYPE,
+      [INFRA_CONVENTIONS.infra.jobManagement.jobType]: INGESTION_JOB_TYPE,
       [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: payload.modelId,
     });
 
-    const res: IngestionResponse = {
+    const res: JobOperationResponse = {
       jobId: jobResponse.id,
       status: OperationStatus.PENDING,
     };
 
+    return res;
+  }
+
+  @withSpanAsyncV4
+  public async validateDeleteJob(modelId: string): Promise<boolean> {
+    const activeDeleteJobs = await this.jobManagerClient.findJobs({
+      domain: DOMAIN,
+      types: [DELETE_JOB_TYPE],
+      internalId: modelId,
+      shouldReturnAvailableActions: false,
+      shouldReturnTasks: false,
+    });
+
+    if (!Array.isArray(activeDeleteJobs) || activeDeleteJobs.length > 0) {
+      return false;
+    }
+    return true;
+  }
+
+  @withSpanAsyncV4
+  public async createDeleteJob(payload: DeletePayload): Promise<JobOperationResponse> {
+    const logContext = { ...this.logContext, function: this.createDeleteJob.name };
+    this.logger.info({
+      msg: `Creating delete job for model ${payload.modelId}`,
+      logContext,
+      modelId: payload.modelId,
+    });
+
+    const job: CreatDeleteJobBody = {
+      internalId: payload.modelId,
+      resourceId: payload.productId,
+      domain: DOMAIN,
+      percentage: 0,
+      version: payload.productVersion.toString(),
+      productName: payload.productName,
+      productType: payload.productType,
+      producerName: payload.producerName,
+      type: DELETE_JOB_TYPE,
+      parameters: {
+        modelId: payload.modelId,
+      },
+      tasks: [
+        {
+          type: DELETE_TASK_TYPE,
+          parameters: { modelId: payload.modelId, blockDuplication: true },
+        },
+      ],
+      status: OperationStatus.IN_PROGRESS,
+    };
+
+    let res: JobOperationResponse | undefined = undefined;
+    try {
+      const jobResponse = await this.jobManagerClient.createJob<DeleteJobParameters, DeleteTaskParameters>(job);
+      res = {
+        jobId: jobResponse.id,
+        status: OperationStatus.IN_PROGRESS,
+      };
+    } catch (err) {
+      this.logger.error({
+        msg: `Failed in creating delete job for ${payload.modelId}`,
+        logContext,
+        modelId: payload.modelId,
+        err,
+      });
+      throw err;
+    }
+    this.logger.info({
+      msg: `Delete job created for ${payload.modelId}`,
+      logContext,
+      modelId: payload.modelId,
+    });
     return res;
   }
 
@@ -115,7 +197,7 @@ export class IngestionManager {
     const spanActive = trace.getActiveSpan();
     spanActive?.setAttributes({
       [INFRA_CONVENTIONS.infra.jobManagement.jobId]: jobId,
-      [INFRA_CONVENTIONS.infra.jobManagement.jobType]: JOB_TYPE,
+      [INFRA_CONVENTIONS.infra.jobManagement.jobType]: INGESTION_JOB_TYPE,
       [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: payload.modelId,
     });
 
@@ -128,7 +210,7 @@ export class IngestionManager {
     await this.queueFileHandler.createQueueFile(payload.modelId);
 
     try {
-      const createJobTimerEnd = this.jobsHistogram?.startTimer({ type: JOB_TYPE });
+      const createJobTimerEnd = this.jobsHistogram?.startTimer({ type: INGESTION_JOB_TYPE });
       const fileCount: number = await this.provider.streamModelPathsToQueueFile(
         payload.modelId,
         payload.pathToTileset,
@@ -175,7 +257,7 @@ export class IngestionManager {
   }
 
   @withSpanAsyncV4
-  private async createTasksForJob(jobId: string, tasks: ICreateTaskBody<TaskParameters>[], maxRequests: number): Promise<void> {
+  private async createTasksForJob(jobId: string, tasks: ICreateTaskBody<IngestionTaskParameters>[], maxRequests: number): Promise<void> {
     const tempTasks = [...tasks];
 
     while (tempTasks.length) {
@@ -185,9 +267,9 @@ export class IngestionManager {
   }
 
   @withSpanV4
-  private createTasks(batchSize: number, modelId: string): ICreateTaskBody<TaskParameters>[] {
+  private createTasks(batchSize: number, modelId: string): ICreateTaskBody<IngestionTaskParameters>[] {
     const logContext = { ...this.logContext, function: this.createTasks.name };
-    const tasks: ICreateTaskBody<TaskParameters>[] = [];
+    const tasks: ICreateTaskBody<IngestionTaskParameters>[] = [];
     let chunk: string[] = [];
     let data: string | null = this.queueFileHandler.readline(modelId);
 
@@ -223,14 +305,14 @@ export class IngestionManager {
 
   @withSpanAsyncV4
   private async updateFileCountAndStatusOfJob(jobId: string, fileCount: number): Promise<void> {
-    const job = await this.jobManagerClient.getJob<JobParameters, TaskParameters>(jobId, false);
-    const parameters: JobParameters = { ...job.parameters, filesCount: fileCount };
+    const job = await this.jobManagerClient.getJob<IngestionJobParameters, IngestionTaskParameters>(jobId, false);
+    const parameters: IngestionJobParameters = { ...job.parameters, filesCount: fileCount };
     await this.jobManagerClient.updateJob(jobId, { status: OperationStatus.IN_PROGRESS, parameters });
   }
 
-  private buildTaskFromChunk(chunk: string[], modelId: string): ICreateTaskBody<TaskParameters> {
-    const parameters: TaskParameters = { paths: chunk, modelId, lastIndexError: -1 };
-    return { type: this.taskType, parameters };
+  private buildTaskFromChunk(chunk: string[], modelId: string): ICreateTaskBody<IngestionTaskParameters> {
+    const parameters: IngestionTaskParameters = { paths: chunk, modelId, lastIndexError: -1 };
+    return { type: INGESTION_TASK_TYPE, parameters };
   }
 
   private isFileInBlackList(data: string): boolean {

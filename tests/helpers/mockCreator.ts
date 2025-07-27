@@ -3,7 +3,8 @@ import { Polygon } from 'geojson';
 import { faker } from '@faker-js/faker';
 import { Layer3DMetadata, ProductType, RecordStatus, RecordType } from '@map-colonies/mc-model-types';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import { CreateJobBody, JobParameters, Payload } from '../../src/common/interfaces';
+import { CreatDeleteJobBody, CreateIngestionJobBody, DeletePayload, IngestionJobParameters, Payload } from '../../src/common/interfaces';
+import { DOMAIN } from '../../src/common/constants';
 
 const maxResolutionMeter = 8000;
 const noData = 999;
@@ -75,11 +76,39 @@ export const createPayload = (modelName: string): Payload => {
   };
 };
 
-export const createJobPayload = (payload: Payload): CreateJobBody => {
+export const createDeletePayload = (): DeletePayload => {
+  return {
+    modelId: faker.string.uuid(),
+    productId: faker.string.uuid(),
+    producerName: faker.word.sample(),
+    productName: faker.word.sample(),
+    productType: faker.word.sample(),
+    productVersion: 1,
+  };
+};
+
+export const createDeleteJobPayload = (payload: DeletePayload): CreatDeleteJobBody => {
   return {
     resourceId: payload.modelId,
     version: '1',
-    type: config.get<string>('jobManager.job.type'),
+    type: config.get<string>('jobManager.delete.taskType'),
+    parameters: {
+      modelId: payload.modelId,
+    },
+    productType: payload.productType,
+    productName: payload.productName,
+    producerName: payload.producerName,
+    percentage: 0,
+    status: OperationStatus.IN_PROGRESS,
+    domain: DOMAIN,
+  };
+};
+
+export const createJobPayload = (payload: Payload): CreateIngestionJobBody => {
+  return {
+    resourceId: payload.modelId,
+    version: '1',
+    type: config.get<string>('jobManager.ingestion.taskType'),
     parameters: createJobParameters(),
     productType: payload.metadata.productType,
     productName: payload.metadata.productName,
@@ -90,7 +119,7 @@ export const createJobPayload = (payload: Payload): CreateJobBody => {
   };
 };
 
-export const createJobParameters = (): JobParameters => {
+export const createJobParameters = (): IngestionJobParameters => {
   return {
     metadata: createMetadata(),
     modelId: faker.string.uuid(),

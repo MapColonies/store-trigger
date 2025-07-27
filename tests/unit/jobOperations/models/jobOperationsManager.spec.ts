@@ -7,8 +7,8 @@ import { register } from 'prom-client';
 import { getApp } from '../../../../src/app';
 import { AppError } from '../../../../src/common/appError';
 import { SERVICES } from '../../../../src/common/constants';
-import { IngestionResponse, Payload } from '../../../../src/common/interfaces';
-import { IngestionManager } from '../../../../src/ingestion/models/ingestionManager';
+import { DeletePayload, JobOperationResponse, Payload } from '../../../../src/common/interfaces';
+import { JobOperationsManager } from '../../../../src/jobOperations/models/jobOperationsManager';
 import {
   configProviderMock,
   createPayload,
@@ -18,10 +18,10 @@ import {
   createJobParameters,
 } from '../../../helpers/mockCreator';
 
-let ingestionManager: IngestionManager;
+let jobOperationsManager: JobOperationsManager;
 let payload: Payload;
 
-describe('ingestionManager', () => {
+describe('jobOperationsManager', () => {
   beforeEach(() => {
     payload = createPayload('model');
 
@@ -35,7 +35,7 @@ describe('ingestionManager', () => {
     });
 
     register.clear();
-    ingestionManager = container.resolve(IngestionManager);
+    jobOperationsManager = container.resolve(JobOperationsManager);
   });
 
   afterEach(() => {
@@ -48,7 +48,7 @@ describe('ingestionManager', () => {
       const jobParameters = createJobParameters();
       const expectedResponse = [jobParameters];
       jobManagerClientMock.findJobs.mockResolvedValue(expectedResponse);
-      const activeJobsResponse = await ingestionManager.getActiveIngestionJobs();
+      const activeJobsResponse = await jobOperationsManager.getActiveIngestionJobs();
       expect(expectedResponse).toMatchObject(activeJobsResponse);
     });
 
@@ -56,20 +56,20 @@ describe('ingestionManager', () => {
       // Arrange
       jobManagerClientMock.findJobs.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
       // Act && Assert
-      await expect(ingestionManager.getActiveIngestionJobs()).rejects.toThrow(AppError);
+      await expect(jobOperationsManager.getActiveIngestionJobs()).rejects.toThrow(AppError);
     });
   });
 
-  describe('createJob Service', () => {
+  describe('create Ingestion Job', () => {
     it('returns create job response', async () => {
       // Arrange
-      const response: IngestionResponse = {
+      const response: JobOperationResponse = {
         jobId: '1234',
         status: OperationStatus.PENDING,
       };
       jobManagerClientMock.createJob.mockResolvedValue({ id: '1234', status: OperationStatus.PENDING });
       // Act
-      const modelResponse = await ingestionManager.createJob(payload);
+      const modelResponse = await jobOperationsManager.createJob(payload);
       //Assert
       expect(modelResponse).toMatchObject(response);
     });
@@ -78,11 +78,11 @@ describe('ingestionManager', () => {
       // Arrange
       jobManagerClientMock.createJob.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
       // Act && Assert
-      await expect(ingestionManager.createJob(payload)).rejects.toThrow(AppError);
+      await expect(jobOperationsManager.createJob(payload)).rejects.toThrow(AppError);
     });
   });
 
-  describe('createModel Service', () => {
+  describe('createModel', () => {
     it('resolves without error when everything is ok', async () => {
       // Arrange
       const jobId = faker.string.uuid();
@@ -100,7 +100,7 @@ describe('ingestionManager', () => {
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
       // Act
-      const response = await ingestionManager.createModel(payload, jobId);
+      const response = await jobOperationsManager.createModel(payload, jobId);
 
       //Assert
       expect(response).toBeUndefined();
@@ -112,7 +112,7 @@ describe('ingestionManager', () => {
       queueFileHandlerMock.createQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
       // Act && Assert
-      await expect(ingestionManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+      await expect(jobOperationsManager.createModel(payload, jobId)).rejects.toThrow(AppError);
     });
 
     it(`rejects if couldn't empty queue file`, async () => {
@@ -121,7 +121,7 @@ describe('ingestionManager', () => {
       queueFileHandlerMock.deleteQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
       // Act && Assert
-      await expect(ingestionManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+      await expect(jobOperationsManager.createModel(payload, jobId)).rejects.toThrow(AppError);
     });
 
     it('rejects if the provider failed', async () => {
@@ -131,7 +131,7 @@ describe('ingestionManager', () => {
       configProviderMock.streamModelPathsToQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
 
       // Act && Assert
-      await expect(ingestionManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+      await expect(jobOperationsManager.createModel(payload, jobId)).rejects.toThrow(AppError);
     });
 
     it(`rejects if couldn't read from queue file`, async () => {
@@ -146,7 +146,7 @@ describe('ingestionManager', () => {
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
       // Act && Assert
-      await expect(ingestionManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+      await expect(jobOperationsManager.createModel(payload, jobId)).rejects.toThrow(AppError);
     });
 
     it('rejects if there is a problem with job manager', async () => {
@@ -163,7 +163,73 @@ describe('ingestionManager', () => {
       queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
 
       // Act && Assert
-      await expect(ingestionManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+      await expect(jobOperationsManager.createModel(payload, jobId)).rejects.toThrow(AppError);
+    });
+  });
+
+  describe('validateDeleteJob method', () => {
+    it('returns true if valid', async () => {
+      jobManagerClientMock.findJobs.mockResolvedValue([]);
+      // Act
+      const isValid = await jobOperationsManager.validateDeleteJob('1234');
+      //Assert
+      expect(isValid).toBeTruthy();
+    });
+
+    it('fail if job is found for search criteria', async () => {
+      const jobParameters = createJobParameters();
+      // Arrange
+      jobManagerClientMock.findJobs.mockResolvedValue([jobParameters]);
+      // Act
+      const isValid = await jobOperationsManager.validateDeleteJob('1234');
+      //Assert
+      expect(isValid).toBeFalsy();
+    });
+
+    it('rejects if jobManager fails', async () => {
+      // Arrange
+      jobManagerClientMock.findJobs.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
+      // Act && Assert
+      await expect(jobOperationsManager.validateDeleteJob('1234')).rejects.toThrow(AppError);
+    });
+  });
+
+  describe('createDeleteJob method', () => {
+    it('returns true if valid', async () => {
+      const payload: DeletePayload = {
+        modelId: 'modelId',
+        productId: 'productId',
+        productVersion: 1,
+        productType: 'productType',
+        productName: 'productName',
+        producerName: 'producerName',
+      };
+
+      const expectedResult: JobOperationResponse = {
+        jobId: '1234',
+        status: OperationStatus.IN_PROGRESS,
+      };
+
+      jobManagerClientMock.createJob.mockResolvedValue({ id: '1234' });
+      // Act
+      const deleteJobReponse = await jobOperationsManager.createDeleteJob(payload);
+      //Assert
+      expect(deleteJobReponse).toMatchObject(expectedResult);
+    });
+
+    it('rejects if jobManager fails', async () => {
+      const payload: DeletePayload = {
+        modelId: 'modelId',
+        productId: 'productId',
+        productVersion: 1,
+        productType: 'productType',
+        productName: 'productName',
+        producerName: 'producerName',
+      };
+      // Arrange
+      jobManagerClientMock.createJob.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, '', true));
+      // Act && Assert
+      await expect(jobOperationsManager.createDeleteJob(payload)).rejects.toThrow(AppError);
     });
   });
 });

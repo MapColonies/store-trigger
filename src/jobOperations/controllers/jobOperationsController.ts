@@ -5,21 +5,72 @@ import { inject, injectable } from 'tsyringe';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import { AppError } from '../../common/appError';
 import { SERVICES } from '../../common/constants';
-import { IngestionResponse, JobParameters, LogContext, Payload, TaskParameters } from '../../common/interfaces';
-import { IngestionManager } from '../models/ingestionManager';
+import { DeletePayload, JobOperationResponse, IngestionJobParameters, LogContext, Payload, IngestionTaskParameters } from '../../common/interfaces';
+import { JobOperationsManager } from '../models/jobOperationsManager';
 
-type CreateResourceHandler = RequestHandler<undefined, IngestionResponse, Payload>;
+type CreateResourceHandler = RequestHandler<undefined, JobOperationResponse, Payload>;
+type DeleteResourceHandler = RequestHandler<undefined, JobOperationResponse, DeletePayload>;
 
 @injectable()
-export class IngestionController {
+export class JobOperationsController {
   private readonly logContext: LogContext;
 
-  public constructor(@inject(SERVICES.LOGGER) private readonly logger: Logger, @inject(IngestionManager) private readonly manager: IngestionManager) {
+  public constructor(
+    @inject(SERVICES.LOGGER) private readonly logger: Logger,
+    @inject(JobOperationsManager) private readonly manager: JobOperationsManager
+  ) {
     this.logContext = {
       fileName: __filename,
-      class: IngestionController.name,
+      class: JobOperationsController.name,
     };
   }
+
+  public delete: DeleteResourceHandler = async (req, res, next) => {
+    const logContext = { ...this.logContext, function: this.delete.name };
+    const payload: DeletePayload = req.body;
+    try {
+      this.logger.info({
+        msg: `Validate Delete Job Data`,
+        logContext,
+        modelId: payload.modelId,
+      });
+      const isValidJob = await this.manager.validateDeleteJob(payload.modelId);
+      if (!isValidJob) {
+        this.logger.warn({
+          msg: `Delete Job Validation Failed`,
+          logContext,
+          modelId: payload.modelId,
+        });
+        throw new AppError(StatusCodes.BAD_REQUEST, 'Delete Job Validation Failed', true);
+      }
+      const jobCreated = await this.manager.createDeleteJob(payload);
+      this.logger.info({
+        msg: `Delete Job created payload`,
+        logContext,
+        modelId: payload.modelId,
+      });
+      res.status(httpStatus.CREATED).json(jobCreated);
+    } catch (err) {
+      if (err instanceof AppError) {
+        const errorMessage = err as { message: string | undefined };
+        const message = errorMessage.message ?? 'failed to create delete job';
+        this.logger.error({
+          msg: `Failed to create delete model, Reason: ${message}`,
+          err,
+          logContext,
+          modelId: payload.modelId,
+        });
+      } else {
+        this.logger.error({
+          msg: `Failed to create delete model`,
+          err,
+          logContext,
+          modelId: payload.modelId,
+        });
+      }
+      return next(err);
+    }
+  };
 
   public create: CreateResourceHandler = async (req, res, next) => {
     const logContext = { ...this.logContext, function: this.create.name };
@@ -74,7 +125,7 @@ export class IngestionController {
     if (!Array.isArray(activeJobs)) {
       return false;
     }
-    const found = activeJobs.find((job: IJobResponse<JobParameters, TaskParameters>) => {
+    const found = activeJobs.find((job: IJobResponse<IngestionJobParameters, IngestionTaskParameters>) => {
       if (job.parameters.metadata.productName === payload.metadata.productName) {
         return true;
       }

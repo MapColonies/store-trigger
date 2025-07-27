@@ -39,9 +39,9 @@ spec:
         {{- include "store-trigger.selectorLabels" . | nindent 8 }}
       annotations:
         {{ include "merged.podAnnotations" . | nindent 8 }}
-      {{- if .Values.resetOnConfigChange }}
+        {{- if .Values.resetOnConfigChange }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-      {{- end }}
+        {{- end }}
     spec:
       {{- if $cloudProviderImagePullSecretName }}
       imagePullSecrets:
@@ -103,9 +103,9 @@ spec:
         {{- if eq $provider "NFS" }}
         - name: ingestion-source-storage
           persistentVolumeClaim:
-            {{-  $NFS := (include "merged.NFS" . ) | fromYaml }}
+          {{-  $NFS := (include "merged.NFS" . ) | fromYaml }}
             claimName: {{ $NFS.name }}
-            {{- end }}
+          {{- end }}
         {{- if $ca.enabled }}
         - name: root-ca
           secret:

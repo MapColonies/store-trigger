@@ -45,7 +45,8 @@ data:
   {{ end }}
   PROVIDER_FROM: {{ $provider | quote }}
   JOB_MANAGER_URL: {{ $jobManager.url | quote }}
-  JOB_TYPE: {{ $jobManager.job.type | quote }}
-  TASK_BATCHES: {{ $jobManager.task.batches | quote}}
-  TASK_TYPE: {{ $jobManager.task.type | quote }}
-
+  JOB_INGESTION_TYPE: {{ $jobManager.ingestion.jobType | quote }} 
+  TASK_INGESTION_TYPE: {{ $jobManager.ingestion.taskType | quote }}
+  INGESTION_TASK_BATCHES: {{ $jobManager.ingestion.batches | quote}}
+  JOB_DELETE_TYPE: {{ $jobManager.delete.jobType | quote }} 
+  TASK_DELETE_TYPE: {{ $jobManager.delete.taskType | quote }}
