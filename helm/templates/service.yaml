@@ -9,7 +9,6 @@ metadata:
   labels:
     app: {{ $chartName }}
     component: {{ $chartName }}
-    environment: {{ include "store-trigger.environment" . }}
     release: {{ $releaseName }}
     {{- include "store-trigger.labels" . | nindent 4 }}
 spec:
