@@ -48,7 +48,9 @@ cloudProvider:
   dockerRegistryUrl:
   flavor:
   imagePullSecretName:
+
 imagePullPolicy:
+
 mcLabelsAndAnnotations:
   component: backend
   partOf: ingestion
