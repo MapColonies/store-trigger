@@ -6,6 +6,7 @@ global:
   imagePullPolicy: IfNotPresent
   tracing: {}
   metrics: {}
+
   providers:
     source: NFS
     destination: S3
@@ -42,11 +43,11 @@ cloudProvider:
   imagePullSecretName:
 imagePullPolicy:
 mcLabelsAndAnnotations:
-    component: backend
-    partOf: ingestion
-    owner: 3d
-    gisDomain: 3d
-    prometheus.enabled: true
+  component: backend
+  partOf: ingestion
+  owner: 3d
+  gisDomain: 3d
+  prometheus.enabled: true
 
 image:
   repository: store-trigger
