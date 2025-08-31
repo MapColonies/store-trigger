@@ -12,7 +12,7 @@
     "prelint": "npm run format",
     "lint:openapi": "npx @redocly/cli lint --format=github-actions ./bundledApi.yaml",
     "lint": "eslint . && helm dependency update ./helm && helm lint ./helm",
-    "lint:fix": "eslint --fix . && helm lint ./helm",
+    "lint:fix": "eslint --fix . && helm dependency update ./helm && helm lint ./helm",
     "test": "npm run test:unit && npm run test:integration",
     "prebuild": "npm run clean",
     "build": "tsc --project tsconfig.build.json && npm run assets:copy",
