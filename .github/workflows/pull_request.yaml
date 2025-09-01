@@ -8,3 +8,4 @@ jobs:
     secrets: inherit
     with:
       openApiFilePath: './bundledApi.yaml'
+      chartDirs: 'helm'
