@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.1](https://github.com/MapColonies/store-trigger/compare/v2.0.0...v2.0.1) (2025-09-01)
+
+
+### Helm Changes
+
+* add mc labels and annotations package (MAPCO-8035) ([#50](https://github.com/MapColonies/store-trigger/issues/50)) ([30f6547](https://github.com/MapColonies/store-trigger/commit/30f65477eabe2db58984fcbc4f058dcaf31f5406))
+
 ## [2.0.0](https://github.com/MapColonies/store-trigger/compare/v1.5.7...v2.0.0) (2025-07-27)
 
 
