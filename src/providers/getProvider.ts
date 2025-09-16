@@ -1,27 +1,48 @@
 import config from 'config';
 import httpStatus from 'http-status-codes';
-import { container } from 'tsyringe';
+import { DependencyContainer } from 'tsyringe';
 import { AppError } from '../common/appError';
-import { ProviderConfig } from '../common/interfaces';
+import { CrawlingConfig, Provider, ProviderConfig } from '../common/interfaces';
+import { SERVICES } from '../common/constants';
 import { NFSProvider } from './nfsProvider';
 import { S3Provider } from './s3Provider';
+import { CrawlingProvider } from './crawlingProvider';
 
-function getProvider(provider: string): S3Provider | NFSProvider {
+const PROVIDER_CONFIG = Symbol('ProviderConfig');
+function getProvider(provider: string, container: DependencyContainer): Provider {
+  const childContainer = container.createChildContainer();
+  childContainer.register(PROVIDER_CONFIG, { useValue: provider });
   switch (provider.toLowerCase()) {
     case 'nfs':
-      return container.resolve(NFSProvider);
+      return childContainer.resolve(NFSProvider);
     case 's3':
-      return container.resolve(S3Provider);
+      return childContainer.resolve(S3Provider);
+    case 'crawling': {
+      const underlying = childContainer.resolve<CrawlingConfig>(SERVICES.PROVIDER_CONFIG).underlying!;
+      childContainer.register(SERVICES.UNDERLYING, {
+        useFactory: (childContainer) => getProvider(underlying, childContainer),
+      });
+      return childContainer.resolve(CrawlingProvider);
+    }
     default:
-      throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Invalid config provider received: ${provider} - available values:  "nfs" or "s3"`, false);
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        `Invalid config provider received: ${provider}. Consult documentation for available values`,
+        false
+      );
   }
 }
 
-function getProviderConfig(provider: string): ProviderConfig {
+function getProviderConfig(container: string | DependencyContainer): ProviderConfig {
+  const provider = typeof container == 'string' ? container : container.resolve<string>(PROVIDER_CONFIG);
   try {
     return config.get(provider);
   } catch (err) {
-    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Invalid config provider received: ${provider} - available values:  "nfs" or "s3"`, false);
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      `Invalid config provider received: ${provider}. Consult documentation for available values`,
+      false
+    );
   }
 }
 

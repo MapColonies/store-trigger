@@ -44,6 +44,19 @@ describe('NFSProvider tests', () => {
     jest.clearAllMocks();
   });
 
+  describe('getFile', () => {
+    it('When calling getFile, should get the file content from pv path', async () => {
+      const model = faker.word.sample();
+      const file = `${faker.word.sample()}.${faker.system.commonFileExt()}`;
+      const fileContent = await nfsHelper.createFileOfModel(model, file);
+
+      const bufferResult = await provider.getFile(`${model}/${file}`);
+      const result = bufferResult.toString();
+
+      expect(result).toStrictEqual(fileContent);
+    });
+  });
+
   describe('streamModelPathsToQueueFile Function', () => {
     it('if model exists in the agreed folder, returns all the file paths of the model', async () => {
       const modelId = faker.string.uuid();

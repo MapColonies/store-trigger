@@ -28,7 +28,7 @@ describe('JobOperationsController on S3', function () {
           token: SERVICES.PROVIDER,
           provider: {
             useFactory: (): Provider => {
-              return getProvider('s3');
+              return getProvider('S3', container);
             },
           },
         },
@@ -189,7 +189,7 @@ describe('IngestionController on NFS', function () {
           token: SERVICES.PROVIDER,
           provider: {
             useFactory: (): Provider => {
-              return getProvider('nfs');
+              return getProvider('NFS', container);
             },
           },
         },

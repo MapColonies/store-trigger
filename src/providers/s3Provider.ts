@@ -1,4 +1,13 @@
-import { CommonPrefix, ListObjectsCommand, ListObjectsRequest, S3Client, S3ClientConfig, S3ServiceException, _Object } from '@aws-sdk/client-s3';
+import {
+  CommonPrefix,
+  ListObjectsCommand,
+  GetObjectCommand,
+  ListObjectsRequest,
+  S3Client,
+  S3ClientConfig,
+  S3ServiceException,
+  _Object,
+} from '@aws-sdk/client-s3';
 import { Logger } from '@map-colonies/js-logger';
 import httpStatus from 'http-status-codes';
 import { inject, injectable } from 'tsyringe';
@@ -9,6 +18,7 @@ import { AppError } from '../common/appError';
 import { SERVICES } from '../common/constants';
 import { LogContext, Provider, S3Config } from '../common/interfaces';
 
+// ToDo: merge this class with the identical class in file-syncer
 @injectable()
 export class S3Provider implements Provider {
   private readonly s3: S3Client;
@@ -38,6 +48,39 @@ export class S3Provider implements Provider {
       fileName: __filename,
       class: S3Provider.name,
     };
+  }
+
+  @withSpanAsyncV4
+  public async getFile(filePath: string): Promise<Buffer> {
+    const logContext = { ...this.logContext, function: this.getFile.name };
+    this.logger.debug({
+      msg: 'Starting to get file',
+      logContext,
+      filePath,
+    });
+
+    const getObjectCommand = new GetObjectCommand({
+      /* eslint-disable @typescript-eslint/naming-convention */
+      Bucket: this.s3Config.bucket,
+      Key: filePath,
+      /* eslint-disable @typescript-eslint/naming-convention */
+    });
+
+    try {
+      const response = await this.s3.send(getObjectCommand);
+      const responseArray = await response.Body?.transformToByteArray();
+      return Buffer.from(responseArray as Uint8Array);
+    } catch (err) {
+      this.logger.error({
+        msg: 'an error occurred during getting file',
+        err,
+        endpoint: this.s3Config.endpointUrl,
+        bucketName: this.s3Config.bucket,
+        key: filePath,
+      });
+      const s3Error = err as Error;
+      throw new Error(`an error occurred during the get key ${filePath} on bucket ${this.s3Config.bucket}, ${s3Error.message}`);
+    }
   }
 
   @withSpanAsyncV4

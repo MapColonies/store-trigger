@@ -46,6 +46,12 @@
   "NFS": {
     "pvPath": "/Path/To/Models"
   },
+  "crawling": {
+    "extension": ".json",
+    "nestedJsonPath": "$.root..uri",
+    "ignoreNotFound": true,
+    "underlying": "NFS"
+  },
   "ingestion": {
     "provider": "NFS",
     "blackList": ["tar", "zip", "rar", "7z"]

@@ -1,4 +1,10 @@
 {
+  "crawling": {
+    "extension": ".json",
+    "nestedJsonPath": "$.root..uri",
+    "ignoreNotFound": true,
+    "underlying": "NFS"
+  },
   "S3": {
     "accessKeyId": "minioadmin",
     "secretAccessKey": "minioadmin",

@@ -44,6 +44,28 @@ describe('S3Provider tests', () => {
     s3Helper.killS3();
   });
 
+  describe('getFile', () => {
+    it(`When calling getFile, should see the file content from source bucket`, async () => {
+      const model = faker.word.sample();
+      const file = `${faker.word.sample()}.${faker.system.commonFileExt()}`;
+      const expected = await s3Helper.createFileOfModel(model, file);
+
+      const result = await provider.getFile(`${model}/${file}`);
+
+      expect(result).toStrictEqual(expected);
+    });
+
+    it(`When the file is not exists in the bucket, throws error`, async () => {
+      const file = `${faker.word.sample()}.${faker.system.commonFileExt()}`;
+
+      const result = async () => {
+        await provider.getFile(file);
+      };
+
+      await expect(result).rejects.toThrow(Error);
+    });
+  });
+
   describe('streamModelPathsToQueueFile', () => {
     it('returns all the files from S3', async () => {
       const modelId = faker.word.sample();

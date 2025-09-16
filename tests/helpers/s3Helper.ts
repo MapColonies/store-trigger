@@ -51,14 +51,16 @@ export class S3Helper {
     await this.s3.send(command);
   }
 
-  public async createFileOfModel(model: string, file: string): Promise<void> {
+  public async createFileOfModel(model: string, file: string): Promise<Buffer> {
+    const data = Buffer.from(faker.word.words());
     const params: PutObjectCommandInput = {
       Bucket: this.s3Config.bucket,
       Key: `${model}/${file}`,
-      Body: Buffer.from(faker.word.words()),
+      Body: data,
     };
     const command = new PutObjectCommand(params);
     await this.s3.send(command);
+    return data;
   }
 
   public async clearBucket(bucket = this.s3Config.bucket): Promise<void> {
