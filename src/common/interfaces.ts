@@ -76,9 +76,10 @@ export interface CrawlingConfig {
   extension: string;
   nestedJsonPath: string;
   ignoreNotFound?: boolean;
+  underlying?: string;
 }
 
-export type ProviderConfig = S3Config | NFSConfig;
+export type ProviderConfig = S3Config | NFSConfig | CrawlingConfig;
 
 export interface JobOperationResponse {
   jobId: string;
