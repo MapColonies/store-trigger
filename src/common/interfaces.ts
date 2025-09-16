@@ -72,6 +72,12 @@ export interface NFSConfig {
   pvPath: string;
 }
 
+export interface CrawlingConfig {
+  extension: string;
+  nestedJsonPath: string;
+  ignoreNotFound?: boolean;
+}
+
 export type ProviderConfig = S3Config | NFSConfig;
 
 export interface JobOperationResponse {
