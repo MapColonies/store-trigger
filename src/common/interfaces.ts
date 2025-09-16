@@ -29,8 +29,10 @@ export interface DeletePayload {
   producerName: string;
 }
 
+// ToDo: merge this class with the identical class in file-syncer
 export interface Provider {
   streamModelPathsToQueueFile: (modelId: string, pathToTileset: string, productName: string) => Promise<number>;
+  getFile: (filePath: string) => Promise<Buffer>;
 }
 
 export interface IngestionJobParameters {
