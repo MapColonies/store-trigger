@@ -54,7 +54,7 @@ mcLabelsAndAnnotations:
 
 image:
   repository: store-trigger
-  tag: 'latest'
+  tag: v2.0.1
 
 nodePort: 30030
 replicaCount: 1
