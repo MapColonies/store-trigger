@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.2](https://github.com/MapColonies/store-trigger/compare/v2.0.1...v2.0.2) (2026-01-01)
+
+
+### Dependency Updates
+
+* remove tag value ([#54](https://github.com/MapColonies/store-trigger/issues/54)) ([5bcb7c9](https://github.com/MapColonies/store-trigger/commit/5bcb7c93aeab710b004495a49210fb9bca86dca0))
+
 ## [2.0.1](https://github.com/MapColonies/store-trigger/compare/v2.0.0...v2.0.1) (2025-09-01)
 
 
