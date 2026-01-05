@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.3](https://github.com/MapColonies/store-trigger/compare/v2.0.2...v2.0.3) (2026-01-05)
+
+
+### Helm Changes
+
+* added podAnnotadded buckets to metrics ([#58](https://github.com/MapColonies/store-trigger/issues/58)) ([d3370db](https://github.com/MapColonies/store-trigger/commit/d3370db277d06af49830d8e40ef1213f694e811b))
+
 ## [2.0.2](https://github.com/MapColonies/store-trigger/compare/v2.0.1...v2.0.2) (2026-01-01)
 
 
