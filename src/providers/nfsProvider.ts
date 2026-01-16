@@ -9,6 +9,7 @@ import { AppError } from '../common/appError';
 import { SERVICES } from '../common/constants';
 import { Provider, NFSConfig, LogContext } from '../common/interfaces';
 
+// ToDo: merge this class with the identical class in file-syncer
 @injectable()
 export class NFSProvider implements Provider {
   private readonly logContext: LogContext;
@@ -23,6 +24,24 @@ export class NFSProvider implements Provider {
       fileName: __filename,
       class: NFSProvider.name,
     };
+  }
+
+  @withSpanAsyncV4
+  public async getFile(filePath: string): Promise<Buffer> {
+    const logContext = { ...this.logContext, function: this.getFile.name };
+    const pvPath = this.config.pvPath;
+    const fullPath = `${pvPath}/${filePath}`;
+    this.logger.debug({
+      msg: 'Starting getFile',
+      logContext,
+      fullPath,
+    });
+    const data = await fs.readFile(fullPath);
+    this.logger.debug({
+      msg: 'Done getFile',
+      logContext,
+    });
+    return data;
   }
 
   @withSpanAsyncV4

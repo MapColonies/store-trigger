@@ -146,4 +146,5 @@ export const jobManagerClientMock = {
 
 export const configProviderMock = {
   streamModelPathsToQueueFile: jest.fn(),
+  getFile: jest.fn(),
 };

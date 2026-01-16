@@ -7,7 +7,6 @@ import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import client from 'prom-client';
 import { JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { SERVICES, SERVICE_NAME } from './common/constants';
-import { Provider, ProviderConfig } from './common/interfaces';
 import { tracing } from './common/tracing';
 import { jobOperationsRouterFactory, JOB_OPERATIONS_ROUTER_SYMBOL } from './jobOperations/routes/jobOperationsRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
@@ -62,18 +61,14 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     {
       token: SERVICES.PROVIDER_CONFIG,
       provider: {
-        useFactory: (): ProviderConfig => {
-          return getProviderConfig(provider);
-        },
+        useFactory: (container) => getProviderConfig(container),
       },
     },
     { token: SERVICES.QUEUE_FILE_HANDLER, provider: { useClass: QueueFileHandler } },
     {
       token: SERVICES.PROVIDER,
       provider: {
-        useFactory: (): Provider => {
-          return getProvider(provider);
-        },
+        useFactory: (container) => getProvider(provider, container),
       },
     },
     {

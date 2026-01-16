@@ -1,4 +1,5 @@
 import config from 'config';
+import { container } from 'tsyringe';
 import { AppError } from '../../../src/common/appError';
 import { NFSConfig, S3Config } from '../../../src/common/interfaces';
 import { getProvider, getProviderConfig } from '../../../src/providers/getProvider';
@@ -35,7 +36,7 @@ describe('getProvider tests', () => {
   it('should throw an error when the provider is nor S3 or NFS', () => {
     const provider = 'bla';
 
-    const response = () => getProvider(provider);
+    const response = () => getProvider(provider, container);
 
     expect(response).toThrow(AppError);
   });
