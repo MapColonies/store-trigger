@@ -1,29 +1,26 @@
 import config from 'config';
 import httpStatus from 'http-status-codes';
 import { DependencyContainer } from 'tsyringe';
+import { CrawlingInstance } from '../handlers/crawlingInstance';
 import { AppError } from '../common/appError';
 import { CrawlingConfig, Provider, ProviderConfig } from '../common/interfaces';
 import { SERVICES } from '../common/constants';
 import { NFSProvider } from './nfsProvider';
 import { S3Provider } from './s3Provider';
-import { CrawlingProvider } from './crawlingProvider';
 
 const PROVIDER_CONFIG = Symbol('ProviderConfig');
 function getProvider(provider: string, container: DependencyContainer): Provider {
   const childContainer = container.createChildContainer();
   childContainer.register(PROVIDER_CONFIG, { useValue: provider });
+  
+  let BaseProvider: Provider;
   switch (provider.toLowerCase()) {
     case 'nfs':
-      return childContainer.resolve(NFSProvider);
+      BaseProvider = childContainer.resolve(NFSProvider);
+      break;
     case 's3':
-      return childContainer.resolve(S3Provider);
-    case 'crawling': {
-      const underlying = childContainer.resolve<CrawlingConfig>(SERVICES.PROVIDER_CONFIG).underlying!;
-      childContainer.register(SERVICES.UNDERLYING, {
-        useFactory: (childContainer) => getProvider(underlying, childContainer),
-      });
-      return childContainer.resolve(CrawlingProvider);
-    }
+      BaseProvider = childContainer.resolve(S3Provider);
+      break;
     default:
       throw new AppError(
         httpStatus.INTERNAL_SERVER_ERROR,
@@ -31,6 +28,27 @@ function getProvider(provider: string, container: DependencyContainer): Provider
         false
       );
   }
+
+  try {
+    const crawlingConfig = config.get<CrawlingConfig>('crawling');
+    if (typeof crawlingConfig.underlying === 'string' && crawlingConfig.underlying.toLowerCase() === provider.toLowerCase()) {
+      return new CrawlingInstance(
+        childContainer.resolve(SERVICES.LOGGER),
+        childContainer.resolve(SERVICES.TRACER),
+        crawlingConfig,
+        BaseProvider,
+        childContainer.resolve(SERVICES.QUEUE_FILE_HANDLER)
+      );
+    }
+  } catch (err) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        `Failed while configuring crawling, Consult documentation for available values`,
+        false
+      );
+    }
+  
+  return BaseProvider;
 }
 
 function getProviderConfig(container: string | DependencyContainer): ProviderConfig {

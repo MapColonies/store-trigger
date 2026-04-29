@@ -130,7 +130,6 @@ env:
   metrics:
     enabled: false
     url: ''
-  blackList: ["tar", "zip", "rar", "7z"]
   maxConcurrency: 5
 
 resources:

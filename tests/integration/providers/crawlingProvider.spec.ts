@@ -9,13 +9,13 @@ import { getApp } from '../../../src/app';
 import { SERVICES } from '../../../src/common/constants';
 import { CrawlingConfig } from '../../../src/common/interfaces';
 import { QueueFileHandler } from '../../../src/handlers/queueFileHandler';
-import { CrawlingProvider } from '../../../src/providers/crawlingProvider';
+import { CrawlingInstance } from '../../../src/handlers/crawlingInstance';
 import { configProviderMock } from '../../helpers/mockCreator';
 import { AppError } from '../../../src/common/appError';
 
 // ToDo those are UNIT tests, NOT INTEGRATION!! But CI requires integration coverage
-describe('CrawlingProvider tests', () => {
-  let provider: CrawlingProvider;
+describe('CrawlingInstance tests', () => {
+  let crawler: CrawlingInstance;
   let queueFileHandler: QueueFileHandler;
   const logger: Logger = jsLogger({ enabled: false });
 
@@ -35,8 +35,9 @@ describe('CrawlingProvider tests', () => {
         { token: SERVICES.UNDERLYING, provider: { useValue: underlying } },
       ],
     });
-    provider = container.resolve(CrawlingProvider);
     queueFileHandler = container.resolve(QueueFileHandler);
+    const tracer = container.resolve<Tracer>(SERVICES.TRACER);
+    crawler = new CrawlingInstance(logger, tracer, config, underlying, queueFileHandler);
   });
 
   afterAll(function () {
@@ -50,8 +51,8 @@ describe('CrawlingProvider tests', () => {
   describe('constructor', () => {
     it('is a stupid test just because coverage fails CI', () => {
       const tracer = container.resolve<Tracer>(SERVICES.TRACER);
-      const provider = new CrawlingProvider(logger, tracer, config, underlying, queueFileHandler);
-      expect(() => new CrawlingProvider(logger, tracer, config, provider, queueFileHandler)).toThrow(AppError);
+      const provider = new CrawlingInstance(logger, tracer, config, underlying, queueFileHandler);
+      expect(() => new CrawlingInstance(logger, tracer, config, provider, queueFileHandler)).toThrow(AppError);
     });
   });
 
@@ -60,7 +61,7 @@ describe('CrawlingProvider tests', () => {
       const filePath = 'A test??';
       const buffetPromise = Promise.resolve(Buffer.from([80, 101, 114, 114, 121, 32, 116, 104, 101, 32, 116, 101, 115, 116, 63, 33, 63, 33]));
       underlying.getFile.mockResolvedValueOnce(buffetPromise);
-      const file = await provider.getFile(filePath);
+      const file = await crawler.getFile(filePath);
       expect(underlying.getFile).toHaveBeenCalledWith(filePath);
       expect(file.toString()).toBe('Perry the test?!?!');
     });
@@ -98,7 +99,7 @@ describe('CrawlingProvider tests', () => {
       const expected: string[] = ['/x/y/0.json', '/x/1.json', '/x/2.json', '/x/y/a.b3dm', '/x/y/b.b3dm', '/x/bla/c.b3dm'];
       await queueFileHandler.createQueueFile(modelId);
 
-      await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      await crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8').trimEnd().split('\n');
 
       expect(result.sort().join('\n')).toBe(expected.sort().join('\n'));
@@ -107,12 +108,12 @@ describe('CrawlingProvider tests', () => {
 
     it('should respect 404 ignore rules error on underlying.getFile error', async () => {
       const configWithIgnoreNotFound = { ...config, ignoreNotFound: true };
-      const provider = new CrawlingProvider(logger, container.resolve(SERVICES.TRACER), configWithIgnoreNotFound, underlying, queueFileHandler);
+      const crawler = new CrawlingInstance(logger, container.resolve(SERVICES.TRACER), configWithIgnoreNotFound, underlying, queueFileHandler);
       underlying.getFile.mockRejectedValueOnce(new AppError(StatusCodes.NOT_FOUND, 'blabla', false));
       const modelName = faker.word.sample();
       const modelId = faker.string.uuid();
 
-      const result = provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      const result = crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       await expect(result).resolves.not.toThrow();
     });
 
@@ -121,7 +122,7 @@ describe('CrawlingProvider tests', () => {
       const modelName = faker.word.sample();
       const modelId = faker.string.uuid();
 
-      const result = provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      const result = crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       await expect(result).rejects.toThrow(AppError);
     });
 
@@ -130,7 +131,7 @@ describe('CrawlingProvider tests', () => {
       const modelName = faker.word.sample();
       const modelId = faker.string.uuid();
 
-      const result = provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      const result = crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
       await expect(result).rejects.toThrow(AppError);
     });
   });

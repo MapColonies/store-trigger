@@ -268,27 +268,17 @@ export class JobOperationsManager {
 
   @withSpanV4
   private createTasks(batchSize: number, modelId: string): ICreateTaskBody<IngestionTaskParameters>[] {
-    const logContext = { ...this.logContext, function: this.createTasks.name };
     const tasks: ICreateTaskBody<IngestionTaskParameters>[] = [];
     let chunk: string[] = [];
     let data: string | null = this.queueFileHandler.readline(modelId);
 
     while (data !== null) {
-      if (this.isFileInBlackList(data)) {
-        this.logger.warn({
-          msg: 'The file is is the black list! Ignored...',
-          logContext,
-          file: data,
-          modelId,
-        });
-      } else {
-        chunk.push(data);
+      chunk.push(data);
 
-        if (chunk.length === batchSize) {
-          const task = this.buildTaskFromChunk(chunk, modelId);
-          tasks.push(task);
-          chunk = [];
-        }
+      if (chunk.length === batchSize) {
+        const task = this.buildTaskFromChunk(chunk, modelId);
+        tasks.push(task);
+        chunk = [];
       }
 
       data = this.queueFileHandler.readline(modelId);
@@ -313,12 +303,5 @@ export class JobOperationsManager {
   private buildTaskFromChunk(chunk: string[], modelId: string): ICreateTaskBody<IngestionTaskParameters> {
     const parameters: IngestionTaskParameters = { paths: chunk, modelId, lastIndexError: -1 };
     return { type: INGESTION_TASK_TYPE, parameters };
-  }
-
-  private isFileInBlackList(data: string): boolean {
-    const blackList = this.config.get<string[]>('ingestion.blackList');
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-    const fileExtension = data.split('.').slice(-1)[0];
-    return blackList.includes(fileExtension);
   }
 }

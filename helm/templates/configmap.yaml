@@ -26,7 +26,6 @@ data:
   REQUESTS_CA_BUNDLE: {{ printf "%s/%s" $ca.path $ca.key | quote }}
   NODE_EXTRA_CA_CERTS: {{ printf "%s/%s" $ca.path $ca.key | quote }}
   {{- end }}
-  BLACK_LIST: {{ .Values.env.blackList | quote }}
   MAX_CONCURRENCY: {{ .Values.env.maxConcurrency | quote }}
   {{ if eq $provider "S3" }}
   {{- $S3 := (include "merged.S3" . ) | fromYaml }}

@@ -1,31 +1,28 @@
 import Path from 'path';
 import { Logger } from '@map-colonies/js-logger';
 import { StatusCodes } from 'http-status-codes';
-import { inject, injectable } from 'tsyringe';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import jsonpath from 'jsonpath';
-import { QueueFileHandler } from '../handlers/queueFileHandler';
 import { AppError } from '../common/appError';
-import { SERVICES } from '../common/constants';
 import { CrawlingConfig, LogContext, Provider } from '../common/interfaces';
+import { QueueFileHandler } from './queueFileHandler';
 
-@injectable()
-export class CrawlingProvider implements Provider {
+export class CrawlingInstance implements Provider {
   private readonly logContext: LogContext;
 
   public constructor(
-    @inject(SERVICES.LOGGER) protected readonly logger: Logger,
-    @inject(SERVICES.TRACER) public readonly tracer: Tracer,
-    @inject(SERVICES.PROVIDER_CONFIG) protected readonly config: CrawlingConfig,
-    @inject(SERVICES.UNDERLYING) protected readonly underlying: Provider,
-    @inject(SERVICES.QUEUE_FILE_HANDLER) protected readonly queueFileHandler: QueueFileHandler
+    private readonly logger: Logger,
+    public readonly tracer: Tracer,
+    public readonly config: CrawlingConfig,
+    private readonly underlying: Provider,
+    private readonly queueFileHandler: QueueFileHandler
   ) {
     this.logContext = {
       fileName: __filename,
-      class: CrawlingProvider.name,
+      class: CrawlingInstance.name,
     };
-    if (this.underlying instanceof CrawlingProvider) {
+    if (this.underlying instanceof CrawlingInstance) {
       throw new AppError(StatusCodes.BAD_REQUEST, `Invalid config in provider: Do not nest crawling providers.`, false);
     }
   }

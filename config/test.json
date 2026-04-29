@@ -1,7 +1,7 @@
 {
   "crawling": {
     "extension": ".json",
-    "nestedJsonPath": "$.root..uri",
+    "nestedJsonPath": "$.root..['uri', 'url']",
     "ignoreNotFound": true,
     "underlying": "NFS"
   },
@@ -19,8 +19,7 @@
     "pvPath": "./tests/helpers/3DModels"
   },
   "ingestion": {
-    "provider": "S3",
-    "blackList": ["tar", "zip", "rar", "7z"]
+    "provider": "S3"
   },
   "jobManager": {
     "url": "http://127.0.0.1:8080",

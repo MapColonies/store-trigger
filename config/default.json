@@ -48,13 +48,12 @@
   },
   "crawling": {
     "extension": ".json",
-    "nestedJsonPath": "$.root..uri",
+    "nestedJsonPath": "$.root..['uri', 'url']",
     "ignoreNotFound": true,
     "underlying": "NFS"
   },
   "ingestion": {
-    "provider": "NFS",
-    "blackList": ["tar", "zip", "rar", "7z"]
+    "provider": "NFS"
   },
   "jobManager": {
     "url": "http://127.0.0.1:8080",
