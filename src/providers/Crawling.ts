@@ -55,7 +55,7 @@ export abstract class Crawling<T extends CrawlingConfig> implements Provider {
  
         if (currentPath.endsWith(this.config.extension)) {
           const nestedPaths = this.extractPathsFromJson(buffer, currentPath);
-          
+
           for (const nestedPath of nestedPaths) {
             if (nestedPath.endsWith(this.config.extension)) {
               processingQueue.push(nestedPath);
@@ -101,7 +101,12 @@ export abstract class Crawling<T extends CrawlingConfig> implements Provider {
       const json = JSON.parse(fileContent) as object;
       const results = jsonpath.query(json, this.config.nestedJsonPath) as string[];
       
-      return results.map((child) => Path.resolve('/', Path.dirname(currentPath), child));
+      const dirname = Path.dirname(currentPath);
+
+      return results.map((child) => {
+        const joinedPath = dirname === '.' ? child : Path.join(dirname, child);
+        return joinedPath.replace(/\\/g, '/').replace(/^\//, '');
+      });
     } catch (err) {
       this.logger.error({ msg: 'Failed to parse JSON', path: currentPath, err });
       return [];

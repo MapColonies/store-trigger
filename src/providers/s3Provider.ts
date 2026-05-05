@@ -1,3 +1,4 @@
+import httpStatus from 'http-status-codes';
 import {
   GetObjectCommand,
   S3Client,
@@ -10,6 +11,7 @@ import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { QueueFileHandler } from '../handlers/queueFileHandler';
 import { SERVICES } from '../common/constants';
 import { LogContext, S3Config } from '../common/interfaces';
+import { AppError } from '../common/appError';
 import { Crawling } from './Crawling';
 
 @injectable()
@@ -71,8 +73,15 @@ export class S3Provider extends Crawling<S3Config> {
         bucketName: this.s3Config.bucket,
         key: filePath,
       });
+
       const s3Error = err as Error;
-      throw new Error(`an error occurred during the get key ${filePath} on bucket ${this.s3Config.bucket}, ${s3Error.message}`);
+      const statusCode = (s3Error as unknown as { name: string }).name === 'NoSuchKey' ? httpStatus.NOT_FOUND : httpStatus.INTERNAL_SERVER_ERROR;
+      
+      throw new AppError(
+        statusCode,
+        `an error occurred during the get key ${filePath} on bucket ${this.s3Config.bucket}, ${s3Error.message}`,
+        true
+      );
     }
   }
 }
