@@ -49,8 +49,7 @@
   "crawling": {
     "extension": ".json",
     "nestedJsonPath": "$.root..['uri', 'url']",
-    "ignoreNotFound": true,
-    "underlying": "NFS"
+    "ignoreNotFound": true
   },
   "ingestion": {
     "provider": "NFS"

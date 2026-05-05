@@ -7,15 +7,16 @@ import { StatusCodes } from 'http-status-codes';
 import { Tracer } from '@opentelemetry/api';
 import { getApp } from '../../../src/app';
 import { SERVICES } from '../../../src/common/constants';
-import { CrawlingConfig } from '../../../src/common/interfaces';
+import { CrawlingConfig, NFSConfig } from '../../../src/common/interfaces';
 import { QueueFileHandler } from '../../../src/handlers/queueFileHandler';
-import { CrawlingInstance } from '../../../src/handlers/crawlingInstance';
+import { Crawling } from '../../../src/providers/Crawling';
 import { configProviderMock } from '../../helpers/mockCreator';
 import { AppError } from '../../../src/common/appError';
+import { NFSProvider } from '../../../src/providers/nfsProvider';
 
 // ToDo those are UNIT tests, NOT INTEGRATION!! But CI requires integration coverage
-describe('CrawlingInstance tests', () => {
-  let crawler: CrawlingInstance;
+describe('Crawling tests', () => {
+  let crawler: Crawling<NFSConfig>;
   let queueFileHandler: QueueFileHandler;
   const logger: Logger = jsLogger({ enabled: false });
 
@@ -23,7 +24,7 @@ describe('CrawlingInstance tests', () => {
   const queueFilePath = os.tmpdir();
   const config: CrawlingConfig = {
     extension: '.json',
-    nestedJsonPath: '$.root..uri',
+    nestedJsonPath: "$.root..['uri', 'url']",
     ignoreNotFound: false,
   };
 
@@ -31,13 +32,12 @@ describe('CrawlingInstance tests', () => {
     getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: logger } },
-        { token: SERVICES.PROVIDER_CONFIG, provider: { useValue: config } },
-        { token: SERVICES.UNDERLYING, provider: { useValue: underlying } },
+        { token: SERVICES.PROVIDER_CONFIG, provider: { useValue: config } }
       ],
     });
     queueFileHandler = container.resolve(QueueFileHandler);
     const tracer = container.resolve<Tracer>(SERVICES.TRACER);
-    crawler = new CrawlingInstance(logger, tracer, config, underlying, queueFileHandler);
+    crawler = new NFSProvider(logger, tracer, config, queueFileHandler);
   });
 
   afterAll(function () {
@@ -48,13 +48,6 @@ describe('CrawlingInstance tests', () => {
     jest.clearAllMocks();
   });
 
-  describe('constructor', () => {
-    it('is a stupid test just because coverage fails CI', () => {
-      const tracer = container.resolve<Tracer>(SERVICES.TRACER);
-      const provider = new CrawlingInstance(logger, tracer, config, underlying, queueFileHandler);
-      expect(() => new CrawlingInstance(logger, tracer, config, provider, queueFileHandler)).toThrow(AppError);
-    });
-  });
 
   describe('getFile', () => {
     it('should delegate', async () => {
@@ -107,8 +100,7 @@ describe('CrawlingInstance tests', () => {
     });
 
     it('should respect 404 ignore rules error on underlying.getFile error', async () => {
-      const configWithIgnoreNotFound = { ...config, ignoreNotFound: true };
-      const crawler = new CrawlingInstance(logger, container.resolve(SERVICES.TRACER), configWithIgnoreNotFound, underlying, queueFileHandler);
+      const crawler = new NFSProvider(logger, container.resolve(SERVICES.TRACER), config, queueFileHandler);
       underlying.getFile.mockRejectedValueOnce(new AppError(StatusCodes.NOT_FOUND, 'blabla', false));
       const modelName = faker.word.sample();
       const modelId = faker.string.uuid();

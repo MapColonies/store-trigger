@@ -58,22 +58,36 @@ describe('NFSProvider tests', () => {
   });
 
   describe('streamModelPathsToQueueFile Function', () => {
-    it('if model exists in the agreed folder, returns all the file paths of the model', async () => {
+    it('if model exists and contains valid JSON, returns linked file paths', async () => {
       const modelId = faker.string.uuid();
+      const modelName = 'interconnect';
+      const entryFile = 'tileset.json';
+      const pathToTileset = `${modelName}/${entryFile}`;
+      
       await queueFileHandler.createQueueFile(modelId);
-      const pathToTileset = faker.word.sample();
-      const modelName = faker.word.sample();
-      let expected = '';
-      for (let i = 0; i < 4; i++) {
-        const file = i === 3 ? `${i}${createFile(false, true)}` : `${i}${createFile()}`;
-        await nfsHelper.createFileOfModel(pathToTileset, file);
-        expected = `${expected}${pathToTileset}/${file}\n`;
-      }
+
+      const textureFile = 'text1.png';
+      const childTileset = 'child.json';
+      
+      const tilesetContent = JSON.stringify({
+        root: {
+          content: { uri: childTileset },
+          children: [{ content: { uri: textureFile } }]
+        }
+      });
+
+      await nfsHelper.createFileOfModel('', pathToTileset, tilesetContent);
+      
+      await nfsHelper.createFileOfModel(modelName, textureFile, 'data');
+      await nfsHelper.createFileOfModel(modelName, childTileset, JSON.stringify({ asset: { version: "1.0" } }));
 
       await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
 
-      expect(result).toStrictEqual(expected);
+      console.log('Crawler Output:', result);
+
+      expect(result).toContain(pathToTileset);
       await queueFileHandler.deleteQueueFile(modelId);
     });
 

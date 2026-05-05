@@ -6,16 +6,18 @@ import { NFSConfig } from '../../src/common/interfaces';
 export class NFSHelper {
   public constructor(private readonly config: NFSConfig) {}
 
-  public async createFileOfModel(modelName: string, file: string): Promise<string> {
+  public async createFileOfModel(modelName: string, file: string, data?: string): Promise<string> {
     const subFolders = path.dirname(file);
     const fileName = path.basename(file);
-    const dirPath = `${this.config.pvPath}/${modelName}/${subFolders}`;
+    const dirPath = path.join(this.config.pvPath, modelName, subFolders);
+    
     if (!fs.existsSync(dirPath)) {
       await this.createFolder(dirPath);
     }
-    const data = faker.word.words();
-    await fs.promises.writeFile(`${dirPath}/${fileName}`, data);
-    return data;
+
+    const content = data ?? faker.word.words();
+    await fs.promises.writeFile(path.join(dirPath, fileName), content);
+    return content;
   }
 
   public async createFolder(path: string): Promise<void> {

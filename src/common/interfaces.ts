@@ -58,7 +58,7 @@ export interface DeleteTaskParameters {
   blockDuplication?: boolean;
 }
 
-export interface S3Config {
+export interface S3Config extends CrawlingConfig {
   accessKeyId: string;
   secretAccessKey: string;
   endpointUrl: string;
@@ -68,7 +68,7 @@ export interface S3Config {
   forcePathStyle: boolean;
 }
 
-export interface NFSConfig {
+export interface NFSConfig extends CrawlingConfig {
   pvPath: string;
 }
 
@@ -76,7 +76,6 @@ export interface CrawlingConfig {
   extension: string;
   nestedJsonPath: string;
   ignoreNotFound?: boolean;
-  underlying?: string;
 }
 
 export type ProviderConfig = S3Config | NFSConfig | CrawlingConfig;
