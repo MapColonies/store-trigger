@@ -1,4 +1,4 @@
-import Path from 'path';
+import Path from 'node:path';
 import { Logger } from '@map-colonies/js-logger';
 import { StatusCodes } from 'http-status-codes';
 import { Tracer } from '@opentelemetry/api';

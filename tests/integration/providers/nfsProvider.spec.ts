@@ -1,5 +1,5 @@
-import fs from 'fs';
-import os from 'os';
+import fs from 'node:fs';
+import os from 'node:os';
 import config from 'config';
 import { container } from 'tsyringe';
 import httpStatus from 'http-status-codes';

@@ -1,5 +1,5 @@
-import fs from 'fs/promises';
-import Path from 'path';
+import fs from 'node:fs/promises';
+import Path from 'node:path';
 import httpStatus from 'http-status-codes';
 import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';

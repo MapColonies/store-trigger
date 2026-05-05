@@ -1,5 +1,5 @@
-import fs from 'fs';
-import os from 'os';
+import fs from 'node:fs';
+import os from 'node:os';
 import config from 'config';
 import jsLogger from '@map-colonies/js-logger';
 import { container } from 'tsyringe';

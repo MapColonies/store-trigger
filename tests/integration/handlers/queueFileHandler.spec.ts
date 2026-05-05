@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import { faker } from '@faker-js/faker';
 import { QueueFileHandler } from '../../../src/handlers/queueFileHandler';
 

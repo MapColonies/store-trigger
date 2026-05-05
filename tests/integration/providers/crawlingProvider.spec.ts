@@ -1,5 +1,5 @@
-import fs from 'fs';
-import os from 'os';
+import fs from 'node:fs';
+import os from 'node:os';
 import jsLogger, { Logger } from '@map-colonies/js-logger';
 import { container } from 'tsyringe';
 import { faker } from '@faker-js/faker';
