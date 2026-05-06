@@ -24,7 +24,7 @@ describe('Crawling tests', () => {
   const queueFilePath = os.tmpdir();
   const config: NFSConfig = {
     extension: '.json',
-    nestedJsonPath: "$.root..['uri', 'url']",
+    nestedJsonPath: "$..['uri', 'url']",
     ignoreNotFound: false,
     pvPath: "test_pv_path",
   };
@@ -33,7 +33,16 @@ describe('Crawling tests', () => {
     getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: logger } },
-        { token: SERVICES.PROVIDER_CONFIG, provider: { useValue: config } }
+        { token: SERVICES.PROVIDER_CONFIG, 
+          provider: { 
+            useValue: { 
+              ...config, 
+              ignoreNotFound: false, 
+              extension: '.json',
+              nestedJsonPath: "$..['uri','url']",
+            } 
+          } 
+        },      
       ],
     });
     queueFileHandler = container.resolve(QueueFileHandler);
@@ -83,23 +92,25 @@ describe('Crawling tests', () => {
       
       // eslint-disable-next-line @typescript-eslint/require-await
       getFileSpy.mockImplementation(async (path) => {
-        if (path === pathToTileset) {
+        const normalizedPath = path.replace(/\\/g, '/');
+        if (normalizedPath === pathToTileset) {
           return Buffer.from(JSON.stringify(json0));
         }
-        if (path === '/x/1.json') {
+        if (normalizedPath === '/x/1.json') {
           return Buffer.from(JSON.stringify(json1));
         }
-        if (path === '/x/2.json') {
+        if (normalizedPath === '/x/2.json') {
           return Buffer.from(JSON.stringify(json2));
         }
         return Buffer.from('content');
       });
 
       await queueFileHandler.createQueueFile(modelId);
-      await crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
-      
+      const total = await crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8').trim().split('\n');
       
+      expect(total).toBe(6);
       expect(result).toEqual(expect.arrayContaining(['/x/y/0.json', '/x/1.json', '/x/2.json']));
       
       getFileSpy.mockRestore();

@@ -26,15 +26,15 @@ describe('S3Provider tests', () => {
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
         { token: SERVICES.PROVIDER_CONFIG, 
-        provider: { 
-          useValue: { 
-            ...s3Config, 
-            ignoreNotFound: false, 
-            extension: '.json',
-            nestedJsonPath: "$..[uri,url]"
+          provider: { 
+            useValue: { 
+              ...s3Config, 
+              ignoreNotFound: false, 
+              extension: '.json',
+              nestedJsonPath: "$..['uri','url']",
+            } 
           } 
-        } 
-      },
+        },
       ],
     });
     provider = container.resolve(S3Provider);
@@ -88,7 +88,7 @@ describe('S3Provider tests', () => {
       const leafFileBinary = `${subDir}/geometry.b3dm`;
 
       const rootContent = JSON.stringify({
-        root: { uri: secondLevelJson }
+        root: { uri: secondLevelJson, url: secondLevelJson }
       });
 
       const subTilesetContent = JSON.stringify({
