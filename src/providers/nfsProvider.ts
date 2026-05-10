@@ -9,7 +9,7 @@ import { QueueFileHandler } from '../handlers/queueFileHandler';
 import { SERVICES } from '../common/constants';
 import { NFSConfig, LogContext } from '../common/interfaces';
 import { AppError } from '../common/appError';
-import { Crawling } from './Crawling';
+import { Crawling } from './crawling';
 
 @injectable()
 export class NFSProvider extends Crawling<NFSConfig> {

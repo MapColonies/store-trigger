@@ -1,30 +1,77 @@
 import jsLogger from '@map-colonies/js-logger';
+import { trace } from '@opentelemetry/api';
+import config from 'config';
 import { container } from 'tsyringe';
-import { getProvider } from '../../../src/providers/getProvider';
-import { getApp } from '../../../src/app';
-import { SERVICES } from '../../../src/common/constants';
+import { getProvider, getProviderConfig } from '../../../src/providers/getProvider';
+import { SERVICES, SERVICE_NAME } from '../../../src/common/constants';
 import { NFSProvider } from '../../../src/providers/nfsProvider';
+import { S3Provider } from '../../../src/providers/s3Provider';
+import {
+  configProviderMock,
+  jobManagerClientMock,
+  queueFileHandlerMock,
+} from '../../helpers/mockCreator';
+
+jest.mock('config', () => ({
+  get: jest.fn((key: string) => {
+    switch (key) {
+      case 'telemetry.logger.level':
+        return 'debug';
+      case 'nfs':
+        return { basePath: '/tmp' };
+      case 's3':
+        return { bucket: 'test-bucket' };
+      default:
+        return {};
+    }
+  }),
+}));
 
 describe('getProvider tests', () => {
-  beforeAll(() => {
-    getApp({
-      override: [
-        { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
-        { token: SERVICES.PROVIDER, provider: { useFactory: (container) => getProvider('nfs', container) } },
-      ],
+  beforeEach(() => {
+    container.reset();
+    jest.clearAllMocks();
+
+    const tracer = trace.getTracer(SERVICE_NAME);
+
+    container.register(SERVICES.LOGGER, { useValue: jsLogger({ enabled: false })});
+    container.register(SERVICES.TRACER, { useValue: tracer });
+    container.register(SERVICES.QUEUE_FILE_HANDLER, { useValue: queueFileHandlerMock });
+    container.register(SERVICES.JOB_MANAGER_CLIENT, { useValue: jobManagerClientMock });
+    container.register(SERVICES.PROVIDER, { useValue: configProviderMock });
+  });
+
+  describe('getProvider nfs', () => {
+    it('should load an instance of the nfs provider', () => {
+      const provider = getProvider('nfs', container);
+      expect(provider).toBeInstanceOf(NFSProvider);
     });
   });
 
-  afterAll(function () {
-    container.reset();
+  describe('getProvider s3', () => {
+    it('should load an instance of the s3 provider', () => {
+      const provider = getProvider('s3', container);
+      expect(provider).toBeInstanceOf(S3Provider);
+    });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  describe('getProvider invalid', () => {
+    it('should throw an AppError for an unknown provider', () => {
+      expect(() => getProvider('invalid', container)).toThrow(
+        'Invalid config provider received: invalid - available values:  "nfs" or "s3"'
+      );
+    });
   });
 
-  it('should recursively load provider', () => {
-    const provider = getProvider('nfs', container);
-    expect(provider).toBeInstanceOf(NFSProvider);
+  describe('config failures', () => {
+    it('should throw when config.get fails', () => {
+      (config.get as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('config failure');
+      });
+
+      expect(() => getProviderConfig('nfs')).toThrow(
+        'Invalid config provider received: nfs. Consult documentation for available values'
+      );
+    });
   });
 });

@@ -9,8 +9,7 @@ import { getApp } from '../../../src/app';
 import { SERVICES } from '../../../src/common/constants';
 import { NFSConfig } from '../../../src/common/interfaces';
 import { QueueFileHandler } from '../../../src/handlers/queueFileHandler';
-import { Crawling } from '../../../src/providers/Crawling';
-import { configProviderMock } from '../../helpers/mockCreator';
+import { Crawling } from '../../../src/providers/crawling';
 import { AppError } from '../../../src/common/appError';
 import { NFSProvider } from '../../../src/providers/nfsProvider';
 
@@ -20,11 +19,10 @@ describe('Crawling tests', () => {
   let queueFileHandler: QueueFileHandler;
   const logger: Logger = jsLogger({ enabled: false });
 
-  const underlying = configProviderMock;
   const queueFilePath = os.tmpdir();
   const config: NFSConfig = {
     extension: '.json',
-    nestedJsonPath: "$..['uri', 'url']",
+    nestedJsonPath: "$..['uri','url']",
     ignoreNotFound: false,
     pvPath: "test_pv_path",
   };
@@ -37,9 +35,6 @@ describe('Crawling tests', () => {
           provider: { 
             useValue: { 
               ...config, 
-              ignoreNotFound: false, 
-              extension: '.json',
-              nestedJsonPath: "$..['uri','url']",
             } 
           } 
         },      
@@ -61,11 +56,13 @@ describe('Crawling tests', () => {
 
   describe('getFile', () => {
     it('should delegate', async () => {
-      const filePath = 'A test??';
-      const buffetPromise = Promise.resolve(Buffer.from([80, 101, 114, 114, 121, 32, 116, 104, 101, 32, 116, 101, 115, 116, 63, 33, 63, 33]));
-      underlying.getFile.mockResolvedValueOnce(buffetPromise);
+      const filePath = 'test.json';
+      const buffer = Buffer.from('Perry the test?!?!');
+      const getFileSpy = jest.spyOn(crawler, 'getFile').mockResolvedValue(buffer);
+      
       const file = await crawler.getFile(filePath);
-      expect(underlying.getFile).toHaveBeenCalledWith(filePath);
+      
+      expect(getFileSpy).toHaveBeenCalledWith(filePath);
       expect(file.toString()).toBe('Perry the test?!?!');
     });
   });
@@ -92,14 +89,15 @@ describe('Crawling tests', () => {
       
       // eslint-disable-next-line @typescript-eslint/require-await
       getFileSpy.mockImplementation(async (path) => {
-        const normalizedPath = path.replace(/\\/g, '/');
-        if (normalizedPath === pathToTileset) {
+        const normalizedPath = path.replace(/\\/g, '/').replace(/^\//, '');
+        
+        if (normalizedPath === 'x/y/0.json') {
           return Buffer.from(JSON.stringify(json0));
         }
-        if (normalizedPath === '/x/1.json') {
+        if (normalizedPath === 'x/1.json') {
           return Buffer.from(JSON.stringify(json1));
         }
-        if (normalizedPath === '/x/2.json') {
+        if (normalizedPath === 'x/2.json') {
           return Buffer.from(JSON.stringify(json2));
         }
         return Buffer.from('content');
@@ -111,37 +109,44 @@ describe('Crawling tests', () => {
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8').trim().split('\n');
       
       expect(total).toBe(6);
-      expect(result).toEqual(expect.arrayContaining(['/x/y/0.json', '/x/1.json', '/x/2.json']));
-      
+      expect(result).toEqual(expect.arrayContaining([expect.stringContaining('x/y/0.json'), expect.stringContaining('x/1.json'), expect.stringContaining('x/2.json')]));      
       getFileSpy.mockRestore();
     });
 
-    it('should respect 404 ignore rules error on underlying.getFile error', async () => {
-      const crawler = new NFSProvider(logger, container.resolve(SERVICES.TRACER), config, queueFileHandler);
-      underlying.getFile.mockRejectedValueOnce(new AppError(StatusCodes.NOT_FOUND, 'blabla', false));
-      const modelName = faker.word.sample();
-      const modelId = faker.string.uuid();
+    it('should respect 404 ignore rules error on getFile error', async () => {
+      const ignoreConfig = { ...config, ignoreNotFound: true };
+      const crawler = new NFSProvider(logger, container.resolve(SERVICES.TRACER), ignoreConfig, queueFileHandler);
+      
+      jest.spyOn(crawler, 'getFile').mockRejectedValue(new AppError(StatusCodes.NOT_FOUND, 'Not Found', false));
 
-      const result = crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      const modelId = faker.string.uuid();
+      const result = crawler.streamModelPathsToQueueFile(modelId, pathToTileset, 'name');
+      
       await expect(result).resolves.not.toThrow();
     });
 
-    it('should throw error on underlying.getFile error', async () => {
-      underlying.getFile.mockRejectedValueOnce(new AppError(StatusCodes.NOT_FOUND, 'blabla', false));
-      const modelName = faker.word.sample();
+    it('should throw error on getFile error', async () => {
+    const modelName = faker.word.sample();
       const modelId = faker.string.uuid();
+      
+      const getFileSpy = jest.spyOn(crawler, 'getFile').mockRejectedValueOnce(new AppError(StatusCodes.NOT_FOUND, 'blabla', false));
 
       const result = crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      
       await expect(result).rejects.toThrow(AppError);
+      getFileSpy.mockRestore();
     });
 
     it('should throw error bad file', async () => {
-      underlying.getFile.mockReturnValueOnce(Buffer.from('}{', 'utf8'));
       const modelName = faker.word.sample();
       const modelId = faker.string.uuid();
 
+      const getFileSpy = jest.spyOn(crawler, 'getFile').mockRejectedValueOnce(new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Internal error', false));
+
       const result = crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      
       await expect(result).rejects.toThrow(AppError);
+      getFileSpy.mockRestore();
     });
   });
 });

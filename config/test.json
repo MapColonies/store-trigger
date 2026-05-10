@@ -1,7 +1,7 @@
 {
   "crawling": {
     "extension": ".json",
-    "nestedJsonPath": "$.root..['uri', 'url']",
+    "nestedJsonPath": "$..['uri','url']",
     "ignoreNotFound": true
   },
   "S3": {

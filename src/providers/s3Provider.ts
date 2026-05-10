@@ -12,7 +12,7 @@ import { QueueFileHandler } from '../handlers/queueFileHandler';
 import { SERVICES } from '../common/constants';
 import { LogContext, S3Config } from '../common/interfaces';
 import { AppError } from '../common/appError';
-import { Crawling } from './Crawling';
+import { Crawling } from './crawling';
 
 @injectable()
 export class S3Provider extends Crawling<S3Config> {

@@ -3,13 +3,13 @@ import httpStatus from 'http-status-codes';
 import { DependencyContainer } from 'tsyringe';
 import { AppError } from '../common/appError';
 import { Provider, ProviderConfig } from '../common/interfaces';
+import { SERVICES } from '../common/constants';
 import { NFSProvider } from './nfsProvider';
 import { S3Provider } from './s3Provider';
 
-const PROVIDER_CONFIG = Symbol('ProviderConfig');
 function getProvider(provider: string, container: DependencyContainer): Provider {
   const childContainer = container.createChildContainer();
-  childContainer.register(PROVIDER_CONFIG, { useValue: provider });
+  childContainer.register(SERVICES.PROVIDER_CONFIG, { useValue: provider });
   switch (provider.toLowerCase()) {
     case 'nfs':
       return childContainer.resolve(NFSProvider);
@@ -21,7 +21,7 @@ function getProvider(provider: string, container: DependencyContainer): Provider
 }
 
 function getProviderConfig(container: string | DependencyContainer): ProviderConfig {
-  const provider = typeof container == 'string' ? container : container.resolve<string>(PROVIDER_CONFIG);
+  const provider = typeof container == 'string' ? container : container.resolve<string>(SERVICES.PROVIDER_CONFIG);
   try {
     return config.get(provider);
   } catch (err) {
