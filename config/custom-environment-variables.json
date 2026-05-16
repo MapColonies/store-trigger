@@ -63,10 +63,30 @@
     "maxAttempts": {
       "__name": "S3_SOURCE_MAX_ATTEMPTS",
       "__format": "number"
+    },
+    "extension": "CRAWLING_EXTENSION",
+    "nestedJsonPath": "CRAWLING_NESTED_JSON_PATH",
+    "ignoreNotFound": {
+      "__name": "CRAWLING_IGNORE_NOT_FOUND",
+      "__format": "boolean"
     }
   },
   "NFS": {
-    "pvPath": "PV_SOURCE_PATH"
+    "pvPath": "PV_SOURCE_PATH",
+    "extension": "CRAWLING_EXTENSION",
+    "nestedJsonPath": "CRAWLING_NESTED_JSON_PATH",
+    "ignoreNotFound": {
+      "__name": "CRAWLING_IGNORE_NOT_FOUND",
+      "__format": "boolean"
+    }
+  },
+  "crawling": {
+    "extension": "CRAWLING_EXTENSION",
+    "nestedJsonPath": "CRAWLING_NESTED_JSON_PATH",
+    "ignoreNotFound": {
+      "__name": "CRAWLING_IGNORE_NOT_FOUND",
+      "__format": "boolean"
+    }
   },
   "ingestion": {
     "provider": "PROVIDER_FROM"

@@ -9,10 +9,10 @@ import { QueueFileHandler } from '../handlers/queueFileHandler';
 import { SERVICES } from '../common/constants';
 import { NFSConfig, LogContext } from '../common/interfaces';
 import { AppError } from '../common/appError';
-import { Crawling } from './crawling';
+import { BaseProvider } from './baseProvider';
 
 @injectable()
-export class NFSProvider extends Crawling<NFSConfig> {
+export class NFSProvider extends BaseProvider<NFSConfig> {
   protected override readonly logContext: LogContext;
   private readonly pvPath: string;
 

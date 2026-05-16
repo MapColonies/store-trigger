@@ -15,12 +15,10 @@ import {
 jest.mock('config', () => ({
   get: jest.fn((key: string) => {
     switch (key) {
-      case 'telemetry.logger.level':
-        return 'debug';
-      case 'nfs':
-        return { basePath: '/tmp' };
-      case 's3':
-        return { bucket: 'test-bucket' };
+      case 'NFS':
+        return { pvPath: '/tmp', extension: '.json', nestedJsonPath: "$..['uri','url']" };
+      case 'S3':
+        return { bucket: 'test-bucket', extension: '.json', nestedJsonPath: "$..['uri','url']" };
       default:
         return {};
     }
@@ -69,8 +67,8 @@ describe('getProvider tests', () => {
         throw new Error('config failure');
       });
 
-      expect(() => getProviderConfig('nfs')).toThrow(
-        'Invalid config provider received: nfs. Consult documentation for available values'
+      expect(() => getProviderConfig('NFS')).toThrow(
+        'Invalid config provider received: NFS. Consult documentation for available values'
       );
     });
   });

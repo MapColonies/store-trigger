@@ -29,7 +29,6 @@ export interface DeletePayload {
   producerName: string;
 }
 
-// ToDo: merge this class with the identical class in file-syncer
 export interface Provider {
   streamModelPathsToQueueFile: (modelId: string, pathToTileset: string, productName: string) => Promise<number>;
   getFile: (filePath: string) => Promise<Buffer>;
@@ -58,7 +57,7 @@ export interface DeleteTaskParameters {
   blockDuplication?: boolean;
 }
 
-export interface S3Config extends CrawlingConfig {
+export interface S3Config extends BaseProviderConfig {
   accessKeyId: string;
   secretAccessKey: string;
   endpointUrl: string;
@@ -68,17 +67,17 @@ export interface S3Config extends CrawlingConfig {
   forcePathStyle: boolean;
 }
 
-export interface NFSConfig extends CrawlingConfig {
+export interface NFSConfig extends BaseProviderConfig {
   pvPath: string;
 }
 
-export interface CrawlingConfig {
+export interface BaseProviderConfig {
   extension: string;
   nestedJsonPath: string;
   ignoreNotFound?: boolean;
 }
 
-export type ProviderConfig = S3Config | NFSConfig | CrawlingConfig;
+export type ProviderConfig = S3Config | NFSConfig;
 
 export interface JobOperationResponse {
   jobId: string;

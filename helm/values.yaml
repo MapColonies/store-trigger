@@ -37,6 +37,11 @@ global:
       jobType: ''
       taskType: ''
 
+  crawling:
+    extension: '.json'
+    nestedJsonPath: "$..['uri','url']"
+    ignoreNotFound: true
+
 cloudProvider:
   dockerRegistryUrl:
   flavor:
@@ -116,6 +121,12 @@ jobManager:
   delete:
     jobType:
     taskType:
+
+crawling:
+  extension: '.json'
+  nestedJsonPath: "$..['uri','url']"
+  ignoreNotFound: true
+
 env:
   port: 80
   targetPort: 8080

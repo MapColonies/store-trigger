@@ -61,7 +61,7 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     {
       token: SERVICES.PROVIDER_CONFIG,
       provider: {
-        useFactory: (container) => getProviderConfig(container),
+        useFactory: () => getProviderConfig(provider),
       },
     },
     { token: SERVICES.QUEUE_FILE_HANDLER, provider: { useClass: QueueFileHandler } },

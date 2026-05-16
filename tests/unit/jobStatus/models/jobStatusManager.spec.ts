@@ -7,7 +7,7 @@ import { AppError } from '../../../../src/common/appError';
 import { SERVICES } from '../../../../src/common/constants';
 import { JobStatusResponse } from '../../../../src/common/interfaces';
 import { JobStatusManager } from '../../../../src/jobStatus/models/jobStatusManager';
-import { jobManagerClientMock } from '../../../helpers/mockCreator';
+import { configProviderMock, jobManagerClientMock } from '../../../helpers/mockCreator';
 
 describe('jobStatusManager', () => {
   let jobStatusManager: JobStatusManager;
@@ -16,6 +16,7 @@ describe('jobStatusManager', () => {
     getApp({
       override: [
         { token: SERVICES.JOB_MANAGER_CLIENT, provider: { useValue: jobManagerClientMock } },
+        { token: SERVICES.PROVIDER, provider: { useValue: configProviderMock } },
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
       ],
     });

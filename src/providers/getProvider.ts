@@ -9,7 +9,10 @@ import { S3Provider } from './s3Provider';
 
 function getProvider(provider: string, container: DependencyContainer): Provider {
   const childContainer = container.createChildContainer();
-  childContainer.register(SERVICES.PROVIDER_CONFIG, { useValue: provider });
+  childContainer.register(SERVICES.PROVIDER_CONFIG, {
+    useFactory: () => getProviderConfig(provider),
+  });
+
   switch (provider.toLowerCase()) {
     case 'nfs':
       return childContainer.resolve(NFSProvider);
@@ -20,8 +23,7 @@ function getProvider(provider: string, container: DependencyContainer): Provider
   }
 }
 
-function getProviderConfig(container: string | DependencyContainer): ProviderConfig {
-  const provider = typeof container == 'string' ? container : container.resolve<string>(SERVICES.PROVIDER_CONFIG);
+function getProviderConfig(provider: string): ProviderConfig {
   try {
     return config.get(provider);
   } catch (err) {

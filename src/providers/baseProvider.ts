@@ -5,10 +5,10 @@ import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import jsonpath from 'jsonpath';
 import { AppError } from '../common/appError';
-import { CrawlingConfig, LogContext, Provider } from '../common/interfaces';
+import { BaseProviderConfig, LogContext, Provider } from '../common/interfaces';
 import { QueueFileHandler } from '../handlers/queueFileHandler';
 
-export abstract class Crawling<T extends CrawlingConfig> implements Provider { 
+export abstract class BaseProvider<T extends BaseProviderConfig> implements Provider { 
   protected readonly logContext: LogContext;
   
   public constructor(
@@ -19,7 +19,7 @@ export abstract class Crawling<T extends CrawlingConfig> implements Provider {
   ) {
     this.logContext = {
       fileName: __filename,
-      class: Crawling.name,
+      class: BaseProvider.name,
     };
   }
 

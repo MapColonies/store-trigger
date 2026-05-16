@@ -12,10 +12,10 @@ import { QueueFileHandler } from '../handlers/queueFileHandler';
 import { SERVICES } from '../common/constants';
 import { LogContext, S3Config } from '../common/interfaces';
 import { AppError } from '../common/appError';
-import { Crawling } from './crawling';
+import { BaseProvider } from './baseProvider';
 
 @injectable()
-export class S3Provider extends Crawling<S3Config> {
+export class S3Provider extends BaseProvider<S3Config> {
   protected override readonly logContext: LogContext;
   private readonly s3: S3Client;
 

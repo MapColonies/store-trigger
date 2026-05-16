@@ -85,8 +85,6 @@ describe('NFSProvider tests', () => {
       
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
 
-      console.log('Crawler Output:', result);
-
       expect(result).toContain(pathToTileset);
       await queueFileHandler.deleteQueueFile(modelId);
     });
