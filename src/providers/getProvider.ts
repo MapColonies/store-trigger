@@ -3,21 +3,15 @@ import httpStatus from 'http-status-codes';
 import { DependencyContainer } from 'tsyringe';
 import { AppError } from '../common/appError';
 import { Provider, ProviderConfig } from '../common/interfaces';
-import { SERVICES } from '../common/constants';
 import { NFSProvider } from './nfsProvider';
 import { S3Provider } from './s3Provider';
 
 function getProvider(provider: string, container: DependencyContainer): Provider {
-  const childContainer = container.createChildContainer();
-  childContainer.register(SERVICES.PROVIDER_CONFIG, {
-    useFactory: () => getProviderConfig(provider),
-  });
-
   switch (provider.toLowerCase()) {
     case 'nfs':
-      return childContainer.resolve(NFSProvider);
+      return container.resolve(NFSProvider);
     case 's3':
-      return childContainer.resolve(S3Provider);
+      return container.resolve(S3Provider);
     default:
       throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Invalid config provider received: ${provider} - available values:  "nfs" or "s3"`, false);
   }

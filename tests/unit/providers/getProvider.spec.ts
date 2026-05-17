@@ -33,6 +33,10 @@ describe('getProvider tests', () => {
     container.register(SERVICES.QUEUE_FILE_HANDLER, { useValue: queueFileHandlerMock });
     container.register(SERVICES.JOB_MANAGER_CLIENT, { useValue: jobManagerClientMock });
     container.register(SERVICES.PROVIDER, { useValue: configProviderMock });
+
+    container.register(SERVICES.PROVIDER_CONFIG, {
+      useFactory: () => getProviderConfig('default_provider'),
+    });
   });
 
   describe('getProvider nfs', () => {

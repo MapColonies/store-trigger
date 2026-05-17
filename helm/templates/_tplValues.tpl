@@ -96,5 +96,5 @@ Custom definitions
 {{- end -}}
 
 {{- define "merged.crawling" -}}
-{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.crawling .Values.global.crawling ) "context" . ) }}
+{{- include "common.tplvalues.merge" ( dict "value" .Values.crawling "context" . ) }}
 {{- end -}}

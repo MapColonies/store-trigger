@@ -37,11 +37,6 @@ global:
       jobType: ''
       taskType: ''
 
-  crawling:
-    extension: '.json'
-    nestedJsonPath: "$..['uri','url']"
-    ignoreNotFound: true
-
 cloudProvider:
   dockerRegistryUrl:
   flavor:
@@ -122,11 +117,6 @@ jobManager:
     jobType:
     taskType:
 
-crawling:
-  extension: '.json'
-  nestedJsonPath: "$..['uri','url']"
-  ignoreNotFound: true
-
 env:
   port: 80
   targetPort: 8080
@@ -142,6 +132,11 @@ env:
     enabled: false
     url: ''
   maxConcurrency: 5
+
+  crawling:
+    extension: '.json'
+    nestedJsonPath: "$..['uri','url']"
+    ignoreNotFound: true
 
 resources:
   enabled: true
