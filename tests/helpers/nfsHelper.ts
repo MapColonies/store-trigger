@@ -10,7 +10,7 @@ export class NFSHelper {
     const subFolders = path.dirname(file);
     const fileName = path.basename(file);
     const dirPath = path.join(this.config.pvPath, modelName, subFolders);
-    
+
     if (!fs.existsSync(dirPath)) {
       await this.createFolder(dirPath);
     }

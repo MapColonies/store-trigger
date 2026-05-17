@@ -1,9 +1,5 @@
 import httpStatus from 'http-status-codes';
-import {
-  GetObjectCommand,
-  S3Client,
-  S3ClientConfig,
-} from '@aws-sdk/client-s3';
+import { GetObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
 import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
 import { Tracer } from '@opentelemetry/api';
@@ -76,12 +72,8 @@ export class S3Provider extends BaseProvider<S3Config> {
 
       const s3Error = err as Error;
       const statusCode = (s3Error as unknown as { name: string }).name === 'NoSuchKey' ? httpStatus.NOT_FOUND : httpStatus.INTERNAL_SERVER_ERROR;
-      
-      throw new AppError(
-        statusCode,
-        `an error occurred during the get key ${filePath} on bucket ${this.s3Config.bucket}, ${s3Error.message}`,
-        true
-      );
+
+      throw new AppError(statusCode, `an error occurred during the get key ${filePath} on bucket ${this.s3Config.bucket}, ${s3Error.message}`, true);
     }
   }
 }

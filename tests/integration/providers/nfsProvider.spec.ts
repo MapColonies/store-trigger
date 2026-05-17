@@ -63,26 +63,26 @@ describe('NFSProvider tests', () => {
       const modelName = 'interconnect';
       const entryFile = 'tileset.json';
       const pathToTileset = `${modelName}/${entryFile}`;
-      
+
       await queueFileHandler.createQueueFile(modelId);
 
       const textureFile = 'text1.png';
       const childTileset = 'child.json';
-      
+
       const tilesetContent = JSON.stringify({
         root: {
           content: { uri: childTileset },
-          children: [{ content: { uri: textureFile } }]
-        }
+          children: [{ content: { uri: textureFile } }],
+        },
       });
 
       await nfsHelper.createFileOfModel('', pathToTileset, tilesetContent);
-      
+
       await nfsHelper.createFileOfModel(modelName, textureFile, 'data');
-      await nfsHelper.createFileOfModel(modelName, childTileset, JSON.stringify({ asset: { version: "1.0" } }));
+      await nfsHelper.createFileOfModel(modelName, childTileset, JSON.stringify({ asset: { version: '1.0' } }));
 
       await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
-      
+
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
 
       expect(result).toContain(pathToTileset);

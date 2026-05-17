@@ -24,20 +24,21 @@ describe('Crawling tests', () => {
     extension: '.json',
     nestedJsonPath: "$..['uri','url']",
     ignoreNotFound: false,
-    pvPath: "test_pv_path",
+    pvPath: 'test_pv_path',
   };
 
   beforeAll(() => {
     getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: logger } },
-        { token: SERVICES.PROVIDER_CONFIG, 
-          provider: { 
-            useValue: { 
-              ...config, 
-            } 
-          } 
-        },      
+        {
+          token: SERVICES.PROVIDER_CONFIG,
+          provider: {
+            useValue: {
+              ...config,
+            },
+          },
+        },
       ],
     });
     queueFileHandler = container.resolve(QueueFileHandler);
@@ -72,11 +73,11 @@ describe('Crawling tests', () => {
       const modelId = faker.string.uuid();
 
       const getFileSpy = jest.spyOn(crawler, 'getFile');
-      
+
       // eslint-disable-next-line @typescript-eslint/require-await
       getFileSpy.mockImplementation(async (path) => {
         const normalizedPath = path.replace(/\\/g, '/').replace(/^\//, '');
-        
+
         if (normalizedPath === 'x/y/0.json') {
           return Buffer.from(JSON.stringify(json0));
         }
@@ -93,9 +94,11 @@ describe('Crawling tests', () => {
       const total = await crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
 
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8').trim().split('\n');
-      
+
       expect(total).toBe(6);
-      expect(result).toEqual(expect.arrayContaining([expect.stringContaining('x/y/0.json'), expect.stringContaining('x/1.json'), expect.stringContaining('x/2.json')]));      
+      expect(result).toEqual(
+        expect.arrayContaining([expect.stringContaining('x/y/0.json'), expect.stringContaining('x/1.json'), expect.stringContaining('x/2.json')])
+      );
       getFileSpy.mockRestore();
     });
 
@@ -117,9 +120,7 @@ describe('Crawling tests', () => {
       });
 
       it('should throw on NOT_FOUND when ignoreNotFound is false', async () => {
-        const getFileSpy = jest
-          .spyOn(crawler, 'getFile')
-          .mockRejectedValueOnce(new AppError(StatusCodes.NOT_FOUND, 'Not Found', false));
+        const getFileSpy = jest.spyOn(crawler, 'getFile').mockRejectedValueOnce(new AppError(StatusCodes.NOT_FOUND, 'Not Found', false));
 
         await expect(crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName)).rejects.toThrow(AppError);
 
@@ -128,9 +129,7 @@ describe('Crawling tests', () => {
 
       it('should skip NOT_FOUND files when ignoreNotFound is true', async () => {
         const ignoringCrawler = createCrawler({ ignoreNotFound: true });
-        const getFileSpy = jest
-          .spyOn(ignoringCrawler, 'getFile')
-          .mockRejectedValue(new AppError(StatusCodes.NOT_FOUND, 'Not Found', false));
+        const getFileSpy = jest.spyOn(ignoringCrawler, 'getFile').mockRejectedValue(new AppError(StatusCodes.NOT_FOUND, 'Not Found', false));
 
         await expect(ignoringCrawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName)).resolves.toBe(0);
 

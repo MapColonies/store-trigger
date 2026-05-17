@@ -47,14 +47,14 @@ export class NFSProvider extends BaseProvider<NFSConfig> {
       return data;
     } catch (err) {
       const error = err as NodeJS.ErrnoException;
-      
+
       if (error.code === 'ENOENT') {
         throw new AppError(httpStatus.NOT_FOUND, `File ${filePath} not found`, true);
       }
       if (error.code === 'EISDIR') {
         throw new AppError(httpStatus.BAD_REQUEST, `${filePath} is a directory, expected a file`, true);
       }
-      
+
       throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Error reading file: ${error.message}`, true);
     }
   }

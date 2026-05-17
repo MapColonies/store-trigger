@@ -6,11 +6,7 @@ import { getProvider, getProviderConfig } from '../../../src/providers/getProvid
 import { SERVICES, SERVICE_NAME } from '../../../src/common/constants';
 import { NFSProvider } from '../../../src/providers/nfsProvider';
 import { S3Provider } from '../../../src/providers/s3Provider';
-import {
-  configProviderMock,
-  jobManagerClientMock,
-  queueFileHandlerMock,
-} from '../../helpers/mockCreator';
+import { configProviderMock, jobManagerClientMock, queueFileHandlerMock } from '../../helpers/mockCreator';
 
 jest.mock('config', () => ({
   get: jest.fn((key: string) => {
@@ -32,7 +28,7 @@ describe('getProvider tests', () => {
 
     const tracer = trace.getTracer(SERVICE_NAME);
 
-    container.register(SERVICES.LOGGER, { useValue: jsLogger({ enabled: false })});
+    container.register(SERVICES.LOGGER, { useValue: jsLogger({ enabled: false }) });
     container.register(SERVICES.TRACER, { useValue: tracer });
     container.register(SERVICES.QUEUE_FILE_HANDLER, { useValue: queueFileHandlerMock });
     container.register(SERVICES.JOB_MANAGER_CLIENT, { useValue: jobManagerClientMock });
@@ -55,9 +51,7 @@ describe('getProvider tests', () => {
 
   describe('getProvider invalid', () => {
     it('should throw an AppError for an unknown provider', () => {
-      expect(() => getProvider('invalid', container)).toThrow(
-        'Invalid config provider received: invalid - available values:  "nfs" or "s3"'
-      );
+      expect(() => getProvider('invalid', container)).toThrow('Invalid config provider received: invalid - available values:  "nfs" or "s3"');
     });
   });
 
@@ -67,9 +61,7 @@ describe('getProvider tests', () => {
         throw new Error('config failure');
       });
 
-      expect(() => getProviderConfig('NFS')).toThrow(
-        'Invalid config provider received: NFS. Consult documentation for available values'
-      );
+      expect(() => getProviderConfig('NFS')).toThrow('Invalid config provider received: NFS. Consult documentation for available values');
     });
   });
 });

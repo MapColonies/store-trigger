@@ -25,15 +25,16 @@ describe('S3Provider tests', () => {
     getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
-        { token: SERVICES.PROVIDER_CONFIG, 
-          provider: { 
-            useValue: { 
-              ...s3Config, 
-              ignoreNotFound: false, 
+        {
+          token: SERVICES.PROVIDER_CONFIG,
+          provider: {
+            useValue: {
+              ...s3Config,
+              ignoreNotFound: false,
               extension: '.json',
               nestedJsonPath: "$..['uri','url']",
-            } 
-          } 
+            },
+          },
         },
       ],
     });
@@ -80,7 +81,7 @@ describe('S3Provider tests', () => {
     it('should recursively discover nested files across multiple directories and levels', async () => {
       const modelId = faker.string.uuid();
       const modelName = 'complex-model';
-      
+
       const rootTileset = 'tileset.json';
       const subDir = 'folderA';
       const secondLevelJson = `${subDir}/sub-tileset.json`;
@@ -88,14 +89,11 @@ describe('S3Provider tests', () => {
       const leafFileBinary = `${subDir}/geometry.b3dm`;
 
       const rootContent = JSON.stringify({
-        root: { uri: secondLevelJson, url: secondLevelJson }
+        root: { uri: secondLevelJson, url: secondLevelJson },
       });
 
       const subTilesetContent = JSON.stringify({
-        buffers: [
-          { uri: 'data.json' },
-          { url: 'geometry.b3dm' }
-        ]
+        buffers: [{ uri: 'data.json' }, { url: 'geometry.b3dm' }],
       });
 
       await s3Helper.createFileOfModel('', rootTileset, rootContent);
@@ -108,7 +106,10 @@ describe('S3Provider tests', () => {
       const totalAdded = await provider.streamModelPathsToQueueFile(modelId, rootTileset, modelName);
 
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
-      const filesInQueue = result.trim().split('\n').map(l => l.trim());
+      const filesInQueue = result
+        .trim()
+        .split('\n')
+        .map((l) => l.trim());
 
       expect(totalAdded).toBe(4);
 
