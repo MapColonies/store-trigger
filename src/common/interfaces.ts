@@ -72,9 +72,9 @@ export interface NFSConfig extends BaseProviderConfig {
 }
 
 export interface BaseProviderConfig {
-  extension?: string;
-  nestedJsonPath?: string;
-  ignoreNotFound?: boolean;
+  extension: string;
+  nestedJsonPath: string;
+  ignoreNotFound: boolean;
 }
 
 export type ProviderConfig = S3Config | NFSConfig;

@@ -2,7 +2,7 @@ import config from 'config';
 import httpStatus from 'http-status-codes';
 import { DependencyContainer } from 'tsyringe';
 import { AppError } from '../common/appError';
-import { Provider, ProviderConfig } from '../common/interfaces';
+import { BaseProviderConfig, Provider, ProviderConfig } from '../common/interfaces';
 import { NFSProvider } from './nfsProvider';
 import { S3Provider } from './s3Provider';
 
@@ -19,16 +19,11 @@ function getProvider(provider: string, container: DependencyContainer): Provider
 
 function getProviderConfig(provider: string): ProviderConfig {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    const providerConfig = config.get(provider) as ProviderConfig;
+    const providerConfig: ProviderConfig = config.get(provider);
+    const crawlingConfig: BaseProviderConfig = config.get('crawling');
+    const fullConfig = { ...providerConfig, ...crawlingConfig };
     
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      const crawlingConfig = config.get('crawling') as Record<string, unknown>;
-      return { ...providerConfig, ...crawlingConfig } as ProviderConfig;
-    } catch (err) {
-      return providerConfig;
-    }
+    return fullConfig;
   } catch (err) {
     throw new AppError(
       httpStatus.INTERNAL_SERVER_ERROR,
