@@ -3,7 +3,6 @@
 {{- $tracing := (include "merged.tracing" . ) | fromYaml }}
 {{- $metrics := (include "merged.metrics" . ) | fromYaml }}
 {{- $jobManager := (include "merged.jobManager" . ) | fromYaml }}
-{{- $crawling := (include "merged.crawling" . ) | fromYaml }}
 {{- $provider := include "provider" . -}}
 apiVersion: v1
 kind: ConfigMap
@@ -50,6 +49,6 @@ data:
   INGESTION_TASK_BATCHES: {{ $jobManager.ingestion.batches | quote}}
   JOB_DELETE_TYPE: {{ $jobManager.delete.jobType | quote }} 
   TASK_DELETE_TYPE: {{ $jobManager.delete.taskType | quote }}
-  CRAWLING_EXTENSION: {{ $crawling.extension | quote }}
-  CRAWLING_NESTED_JSON_PATH: {{ $crawling.nestedJsonPath | quote }}
-  CRAWLING_IGNORE_NOT_FOUND: {{ $crawling.ignoreNotFound | quote }}
+  CRAWLING_EXTENSION: {{ .Values.env.crawling.extension | quote }}
+  CRAWLING_NESTED_JSON_PATH: {{ .Values.env.crawling.nestedJsonPath | quote }}
+  CRAWLING_IGNORE_NOT_FOUND: {{ .Values.env.crawling.ignoreNotFound | quote }}

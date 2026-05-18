@@ -94,7 +94,3 @@ Custom definitions
 {{- define "merged.jobManager" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.jobManager .Values.global.jobManager ) "context" . ) }}
 {{- end -}}
-
-{{- define "merged.crawling" -}}
-{{- include "common.tplvalues.merge" ( dict "value" .Values.crawling "context" . ) }}
-{{- end -}}
