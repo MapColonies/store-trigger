@@ -19,7 +19,16 @@ function getProvider(provider: string, container: DependencyContainer): Provider
 
 function getProviderConfig(provider: string): ProviderConfig {
   try {
-    return config.get(provider);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const providerConfig = config.get(provider) as ProviderConfig;
+    
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      const crawlingConfig = config.get('crawling') as Record<string, unknown>;
+      return { ...providerConfig, ...crawlingConfig } as ProviderConfig;
+    } catch (err) {
+      return providerConfig;
+    }
   } catch (err) {
     throw new AppError(
       httpStatus.INTERNAL_SERVER_ERROR,

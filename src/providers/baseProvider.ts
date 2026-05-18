@@ -23,7 +23,8 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
       class: BaseProvider.name,
     };
 
-    this.crawlingExtension = this.config.extension;
+    const extension = (this.config.extension as string) || '.json';
+    this.crawlingExtension = extension.startsWith('.') ? extension : `.${extension}`;
   }
 
   @withSpanAsyncV4
@@ -114,7 +115,7 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
     try {
       const fileContent = buffer.toString();
       const json = JSON.parse(fileContent) as object;
-      const nestedJsonPath = this.config.nestedJsonPath;
+      const nestedJsonPath = (this.config.nestedJsonPath as string) || "$..['uri','url']";
       const results = jsonpath.query(json, nestedJsonPath) as string[];
 
       const dirname = Path.dirname(currentPath);

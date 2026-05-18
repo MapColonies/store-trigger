@@ -12,9 +12,11 @@ jest.mock('config', () => ({
   get: jest.fn((key: string) => {
     switch (key) {
       case 'NFS':
-        return { pvPath: '/tmp', extension: '.json', nestedJsonPath: "$..['uri','url']" };
+        return { pvPath: '/tmp' };
       case 'S3':
-        return { bucket: 'test-bucket', extension: '.json', nestedJsonPath: "$..['uri','url']" };
+        return { bucket: 'test-bucket' };
+      case 'crawling':
+        return { extension: '.json', nestedJsonPath: "$..['uri','url']", ignoreNotFound: true };
       default:
         return {};
     }
@@ -35,7 +37,7 @@ describe('getProvider tests', () => {
     container.register(SERVICES.PROVIDER, { useValue: configProviderMock });
 
     container.register(SERVICES.PROVIDER_CONFIG, {
-      useFactory: () => getProviderConfig('default_provider'),
+      useFactory: () => getProviderConfig('NFS'),
     });
   });
 

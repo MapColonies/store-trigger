@@ -1,22 +1,27 @@
 import config from 'config';
 import { container } from 'tsyringe';
 import { AppError } from '../../../src/common/appError';
-import { NFSConfig, S3Config } from '../../../src/common/interfaces';
 import { getProvider, getProviderConfig } from '../../../src/providers/getProvider';
 
 describe('getProviderConfig tests', () => {
-  it('should return the NFS config when the provider is NFS', () => {
+  it('should return the NFS config merged with crawling config when the provider is NFS', () => {
     const provider = 'NFS';
-    const expected = config.get<NFSConfig>('NFS');
+    /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+    const nfsConfig = config.get('NFS') as Record<string, unknown>;
+    const crawlingConfig = config.get('crawling') as Record<string, unknown>;
+    const expected = { ...nfsConfig, ...crawlingConfig };
 
     const response = getProviderConfig(provider);
 
     expect(response).toStrictEqual(expected);
   });
 
-  it('should return the S3 config when the provider is S3', () => {
+  it('should return the S3 config merged with crawling config when the provider is S3', () => {
     const provider = 'S3';
-    const expected = config.get<S3Config>('S3');
+    const s3Config = config.get('S3') as Record<string, unknown>;
+    const crawlingConfig = config.get('crawling') as Record<string, unknown>;
+    /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
+    const expected = { ...s3Config, ...crawlingConfig };
 
     const response = getProviderConfig(provider);
 
