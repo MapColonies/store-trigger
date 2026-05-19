@@ -23,8 +23,7 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
       class: BaseProvider.name,
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    const extension = this.config.extension || '.json';
+    const extension = this.config.extension;
     this.crawlingExtension = extension.startsWith('.') ? extension : `.${extension}`;
   }
 
@@ -88,9 +87,7 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
           }
         }
       } catch (err) {
-        const ignoreNotFound = this.config.ignoreNotFound;
-
-        if (ignoreNotFound && err instanceof AppError && err.status === StatusCodes.NOT_FOUND) {
+        if (this.config.ignoreNotFound && err instanceof AppError && err.status === StatusCodes.NOT_FOUND) {
           this.logger.warn({ msg: 'File not found, skipping...', logContext, path: currentPath, modelName });
           continue;
         }
@@ -123,8 +120,7 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
     try {
       const fileContent = buffer.toString();
       const json = JSON.parse(fileContent) as object;
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      const nestedJsonPath = this.config.nestedJsonPath || "$..['uri','url']";
+      const nestedJsonPath = this.config.nestedJsonPath;
       const results = jsonpath.query(json, nestedJsonPath) as string[];
 
       const dirname = Path.dirname(currentPath);

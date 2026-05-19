@@ -9,7 +9,7 @@ import { faker } from '@faker-js/faker';
 import { getApp } from '../../../src/app';
 import { NFSProvider } from '../../../src/providers/nfsProvider';
 import { SERVICES } from '../../../src/common/constants';
-import { NFSConfig } from '../../../src/common/interfaces';
+import { BaseProviderConfig, NFSConfig } from '../../../src/common/interfaces';
 import { AppError } from '../../../src/common/appError';
 import { createFile, queueFileHandlerMock } from '../../helpers/mockCreator';
 import { QueueFileHandler } from '../../../src/handlers/queueFileHandler';
@@ -19,7 +19,7 @@ describe('NFSProvider tests', () => {
   let provider: NFSProvider;
   let queueFileHandler: QueueFileHandler;
   const queueFilePath = os.tmpdir();
-  const nfsConfig = config.get<NFSConfig>('NFS');
+  const nfsConfig = { ...config.get<NFSConfig>('NFS'), ...config.get<BaseProviderConfig>('crawling') };
   let nfsHelper: NFSHelper;
 
   beforeAll(() => {
@@ -93,6 +93,8 @@ describe('NFSProvider tests', () => {
       const pathToTileset = faker.word.sample();
       const modelName = faker.word.sample();
       const modelId = faker.string.uuid();
+
+      (provider as unknown as { config: BaseProviderConfig }).config.ignoreNotFound = false;
 
       const result = async () => {
         await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
