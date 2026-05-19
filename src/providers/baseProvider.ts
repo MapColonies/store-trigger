@@ -23,7 +23,8 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
       class: BaseProvider.name,
     };
 
-    const extension = this.config.extension;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const extension = this.config.extension || '.json';
     this.crawlingExtension = extension.startsWith('.') ? extension : `.${extension}`;
   }
 
@@ -122,7 +123,8 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
     try {
       const fileContent = buffer.toString();
       const json = JSON.parse(fileContent) as object;
-      const nestedJsonPath = this.config.nestedJsonPath;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      const nestedJsonPath = this.config.nestedJsonPath || "$..['uri','url']";
       const results = jsonpath.query(json, nestedJsonPath) as string[];
 
       const dirname = Path.dirname(currentPath);
