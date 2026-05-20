@@ -1,17 +1,20 @@
-import fs from 'fs/promises';
-import { Logger } from '@map-colonies/js-logger';
+import fs from 'node:fs/promises';
+import Path from 'node:path';
 import httpStatus from 'http-status-codes';
 import { inject, injectable } from 'tsyringe';
+import { Logger } from '@map-colonies/js-logger';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { QueueFileHandler } from '../handlers/queueFileHandler';
-import { AppError } from '../common/appError';
 import { SERVICES } from '../common/constants';
-import { Provider, NFSConfig, LogContext } from '../common/interfaces';
+import { NFSConfig, LogContext } from '../common/interfaces';
+import { AppError } from '../common/appError';
+import { BaseProvider } from './baseProvider';
 
 @injectable()
-export class NFSProvider implements Provider {
-  private readonly logContext: LogContext;
+export class NFSProvider extends BaseProvider<NFSConfig> {
+  protected override readonly logContext: LogContext;
+  private readonly pvPath: string;
 
   public constructor(
     @inject(SERVICES.LOGGER) protected readonly logger: Logger,
@@ -19,73 +22,40 @@ export class NFSProvider implements Provider {
     @inject(SERVICES.PROVIDER_CONFIG) protected readonly config: NFSConfig,
     @inject(SERVICES.QUEUE_FILE_HANDLER) protected readonly queueFileHandler: QueueFileHandler
   ) {
+    super(logger, tracer, config, queueFileHandler);
+
     this.logContext = {
       fileName: __filename,
       class: NFSProvider.name,
     };
+    this.pvPath = this.config.pvPath;
   }
 
   @withSpanAsyncV4
-  public async streamModelPathsToQueueFile(modelId: string, pathToTileset: string, modelName: string): Promise<number> {
-    const logContext = { ...this.logContext, function: this.streamModelPathsToQueueFile.name };
-    let filesCount = 0;
-    const modelPath = `${this.config.pvPath}/${pathToTileset}`;
+  public override async getFile(filePath: string): Promise<Buffer> {
+    const logContext = { ...this.logContext, function: this.getFile.name };
+    this.logger.debug({
+      msg: 'Starting to get file',
+      logContext,
+      filePath,
+    });
+
+    const fullPath = Path.join(this.pvPath, filePath);
+
     try {
-      await fs.access(modelPath);
+      const data = await fs.readFile(fullPath);
+      return data;
     } catch (err) {
-      this.logger.error({
-        msg: 'failed to access the folder',
-        logContext,
-        modelId,
-        modelName,
-        err,
-      });
-      throw new AppError(httpStatus.NOT_FOUND, `Model ${modelName} doesn't exists in the agreed folder. Path: ${modelPath}`, true);
-    }
+      const error = err as NodeJS.ErrnoException;
 
-    const folders: string[] = [pathToTileset];
-
-    while (folders.length > 0) {
-      const files = await fs.readdir(`${this.config.pvPath}/${folders[0]}`);
-      this.logger.debug({
-        msg: 'Listing folder',
-        logContext,
-        folder: folders[0],
-        filesCount,
-        modelId,
-        modelName,
-      });
-      for (const file of files) {
-        const fileStats = await fs.stat(`${this.config.pvPath}/${folders[0]}/${file}`);
-        if (fileStats.isDirectory()) {
-          folders.push(`${folders[0]}/${file}`);
-        } else {
-          try {
-            await this.queueFileHandler.writeFileNameToQueueFile(modelId, `${folders[0]}/${file}`);
-            filesCount++;
-          } catch (err) {
-            this.logger.error({
-              msg: `Didn't write the file: '${folders[0]}/${file}' in FS.`,
-              logContext,
-              modelId,
-              modelName,
-              err,
-            });
-            throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, 'problem with queueFileHandler', false);
-          }
-        }
+      if (error.code === 'ENOENT') {
+        throw new AppError(httpStatus.NOT_FOUND, `File ${filePath} not found`, true);
+      }
+      if (error.code === 'EISDIR') {
+        throw new AppError(httpStatus.BAD_REQUEST, `${filePath} is a directory, expected a file`, true);
       }
 
-      folders.shift();
+      throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Error reading file: ${error.message}`, true);
     }
-
-    this.logger.info({
-      msg: 'Finished listing the files',
-      logContext,
-      filesCount: filesCount,
-      modelName,
-      modelId,
-    });
-    return filesCount;
   }
 }

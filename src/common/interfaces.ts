@@ -31,6 +31,7 @@ export interface DeletePayload {
 
 export interface Provider {
   streamModelPathsToQueueFile: (modelId: string, pathToTileset: string, productName: string) => Promise<number>;
+  getFile: (filePath: string) => Promise<Buffer>;
 }
 
 export interface IngestionJobParameters {
@@ -56,7 +57,7 @@ export interface DeleteTaskParameters {
   blockDuplication?: boolean;
 }
 
-export interface S3Config {
+export interface S3Config extends BaseProviderConfig {
   accessKeyId: string;
   secretAccessKey: string;
   endpointUrl: string;
@@ -66,8 +67,14 @@ export interface S3Config {
   forcePathStyle: boolean;
 }
 
-export interface NFSConfig {
+export interface NFSConfig extends BaseProviderConfig {
   pvPath: string;
+}
+
+export interface BaseProviderConfig {
+  extension: string;
+  nestedJsonPath: string;
+  ignoreNotFound: boolean;
 }
 
 export type ProviderConfig = S3Config | NFSConfig;

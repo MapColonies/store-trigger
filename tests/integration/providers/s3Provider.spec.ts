@@ -1,5 +1,5 @@
-import fs from 'fs';
-import os from 'os';
+import fs from 'node:fs';
+import os from 'node:os';
 import config from 'config';
 import jsLogger from '@map-colonies/js-logger';
 import { container } from 'tsyringe';
@@ -21,10 +21,21 @@ describe('S3Provider tests', () => {
   const s3Config = config.get<S3Config>('S3');
 
   beforeAll(async () => {
+    container.reset();
     getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
-        { token: SERVICES.PROVIDER_CONFIG, provider: { useValue: s3Config } },
+        {
+          token: SERVICES.PROVIDER_CONFIG,
+          provider: {
+            useValue: {
+              ...s3Config,
+              ignoreNotFound: false,
+              extension: '.json',
+              nestedJsonPath: "$..['uri','url']",
+            },
+          },
+        },
       ],
     });
     provider = container.resolve(S3Provider);
@@ -44,28 +55,69 @@ describe('S3Provider tests', () => {
     s3Helper.killS3();
   });
 
+  describe('getFile', () => {
+    it(`When calling getFile, should see the file content from source bucket`, async () => {
+      const model = faker.word.sample();
+      const file = `${faker.word.sample()}.${faker.system.commonFileExt()}`;
+      const expected = await s3Helper.createFileOfModel(model, file);
+
+      const result = await provider.getFile(`${model}/${file}`);
+
+      expect(result).toStrictEqual(expected);
+    });
+
+    it(`When the file is not exists in the bucket, throws error`, async () => {
+      const file = `${faker.word.sample()}.${faker.system.commonFileExt()}`;
+
+      const result = async () => {
+        await provider.getFile(file);
+      };
+
+      await expect(result).rejects.toThrow(Error);
+    });
+  });
+
   describe('streamModelPathsToQueueFile', () => {
-    it('returns all the files from S3', async () => {
-      const modelId = faker.word.sample();
-      const modelName = faker.word.sample();
-      const pathToTileset = faker.word.sample();
-      const fileLength = faker.number.int({ min: 1, max: 5 });
-      const expectedFiles: string[] = [];
-      for (let i = 0; i < fileLength; i++) {
-        const file = faker.word.sample();
-        await s3Helper.createFileOfModel(pathToTileset, file);
-        expectedFiles.push(`${pathToTileset}/${file}`);
-      }
+    it('should recursively discover nested files across multiple directories and levels', async () => {
+      const modelId = faker.string.uuid();
+      const modelName = 'complex-model';
+
+      const rootTileset = 'tileset.json';
+      const subDir = 'folderA';
+      const secondLevelJson = `${subDir}/sub-tileset.json`;
+      const leafFileJson = `${subDir}/data.json`;
+      const leafFileBinary = `${subDir}/geometry.b3dm`;
+
+      const rootContent = JSON.stringify({
+        root: { uri: secondLevelJson, url: secondLevelJson },
+      });
+
+      const subTilesetContent = JSON.stringify({
+        buffers: [{ uri: 'data.json' }, { url: 'geometry.b3dm' }],
+      });
+
+      await s3Helper.createFileOfModel('', rootTileset, rootContent);
+      await s3Helper.createFileOfModel('', secondLevelJson, subTilesetContent);
+      await s3Helper.createFileOfModel('', leafFileJson, JSON.stringify({}));
+      await s3Helper.createFileOfModel('', leafFileBinary, Buffer.from('fake-binary-data'));
+
       await queueFileHandler.createQueueFile(modelId);
-      await s3Helper.createFileOfModel(pathToTileset, 'subDir/file');
-      expectedFiles.push(`${pathToTileset}/subDir/file`);
 
-      await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      const totalAdded = await provider.streamModelPathsToQueueFile(modelId, rootTileset, modelName);
+
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
+      const filesInQueue = result
+        .trim()
+        .split('\n')
+        .map((l) => l.trim());
 
-      for (const file of expectedFiles) {
-        expect(result).toContain(file);
-      }
+      expect(totalAdded).toBe(4);
+
+      expect(filesInQueue).toContain(rootTileset);
+      expect(filesInQueue).toContain(secondLevelJson);
+      expect(filesInQueue).toContain(leafFileJson);
+      expect(filesInQueue).toContain(leafFileBinary);
+
       await queueFileHandler.deleteQueueFile(modelId);
     });
 

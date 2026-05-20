@@ -68,9 +68,16 @@
   "NFS": {
     "pvPath": "PV_SOURCE_PATH"
   },
+  "crawling": {
+    "extension": "CRAWLING_EXTENSION",
+    "nestedJsonPath": "CRAWLING_NESTED_JSON_PATH",
+    "ignoreNotFound": {
+      "__name": "CRAWLING_IGNORE_NOT_FOUND",
+      "__format": "boolean"
+    }
+  },
   "ingestion": {
-    "provider": "PROVIDER_FROM",
-    "blackList": "BLACK_LIST"
+    "provider": "PROVIDER_FROM"
   },
   "jobManager": {
     "url": "JOB_MANAGER_URL",

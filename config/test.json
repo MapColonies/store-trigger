@@ -1,4 +1,9 @@
 {
+  "crawling": {
+    "extension": ".json",
+    "nestedJsonPath": "$..['uri','url']",
+    "ignoreNotFound": true
+  },
   "S3": {
     "accessKeyId": "minioadmin",
     "secretAccessKey": "minioadmin",
@@ -13,8 +18,7 @@
     "pvPath": "./tests/helpers/3DModels"
   },
   "ingestion": {
-    "provider": "S3",
-    "blackList": ["tar", "zip", "rar", "7z"]
+    "provider": "S3"
   },
   "jobManager": {
     "url": "http://127.0.0.1:8080",

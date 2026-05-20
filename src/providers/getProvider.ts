@@ -1,12 +1,12 @@
 import config from 'config';
 import httpStatus from 'http-status-codes';
-import { container } from 'tsyringe';
+import { DependencyContainer } from 'tsyringe';
 import { AppError } from '../common/appError';
-import { ProviderConfig } from '../common/interfaces';
+import { BaseProviderConfig, Provider, ProviderConfig } from '../common/interfaces';
 import { NFSProvider } from './nfsProvider';
 import { S3Provider } from './s3Provider';
 
-function getProvider(provider: string): S3Provider | NFSProvider {
+function getProvider(provider: string, container: DependencyContainer): Provider {
   switch (provider.toLowerCase()) {
     case 'nfs':
       return container.resolve(NFSProvider);
@@ -19,9 +19,17 @@ function getProvider(provider: string): S3Provider | NFSProvider {
 
 function getProviderConfig(provider: string): ProviderConfig {
   try {
-    return config.get(provider);
+    const providerConfig: ProviderConfig = config.get(provider);
+    const crawlingConfig: BaseProviderConfig = config.get('crawling');
+    const fullConfig = { ...providerConfig, ...crawlingConfig };
+    
+    return fullConfig;
   } catch (err) {
-    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Invalid config provider received: ${provider} - available values:  "nfs" or "s3"`, false);
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      `Invalid config provider received: ${provider}. Consult documentation for available values`,
+      false
+    );
   }
 }
 

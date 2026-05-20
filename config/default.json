@@ -46,9 +46,13 @@
   "NFS": {
     "pvPath": "/Path/To/Models"
   },
+  "crawling": {
+    "extension": ".json",
+    "nestedJsonPath": "$..['uri','url']",
+    "ignoreNotFound": true
+  },
   "ingestion": {
-    "provider": "NFS",
-    "blackList": ["tar", "zip", "rar", "7z"]
+    "provider": "NFS"
   },
   "jobManager": {
     "url": "http://127.0.0.1:8080",

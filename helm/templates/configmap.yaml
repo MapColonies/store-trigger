@@ -26,7 +26,6 @@ data:
   REQUESTS_CA_BUNDLE: {{ printf "%s/%s" $ca.path $ca.key | quote }}
   NODE_EXTRA_CA_CERTS: {{ printf "%s/%s" $ca.path $ca.key | quote }}
   {{- end }}
-  BLACK_LIST: {{ .Values.env.blackList | quote }}
   MAX_CONCURRENCY: {{ .Values.env.maxConcurrency | quote }}
   {{ if eq $provider "S3" }}
   {{- $S3 := (include "merged.S3" . ) | fromYaml }}
@@ -50,3 +49,6 @@ data:
   INGESTION_TASK_BATCHES: {{ $jobManager.ingestion.batches | quote}}
   JOB_DELETE_TYPE: {{ $jobManager.delete.jobType | quote }} 
   TASK_DELETE_TYPE: {{ $jobManager.delete.taskType | quote }}
+  CRAWLING_EXTENSION: {{ .Values.env.crawling.extension | quote }}
+  CRAWLING_NESTED_JSON_PATH: {{ .Values.env.crawling.nestedJsonPath | quote }}
+  CRAWLING_IGNORE_NOT_FOUND: {{ .Values.env.crawling.ignoreNotFound | quote }}
