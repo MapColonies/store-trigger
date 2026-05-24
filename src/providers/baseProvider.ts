@@ -34,7 +34,7 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
     let initialPath = pathToTileset;
     if (!initialPath.endsWith(this.crawlingExtension)) {
       initialPath = Path.join(initialPath, `tileset${this.crawlingExtension}`);
-      
+
       initialPath = initialPath.replace(/\\/g, '/').replace(/^\//, '');
     }
 
