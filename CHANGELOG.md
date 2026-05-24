@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/MapColonies/store-trigger/compare/v2.0.3...v2.1.0) (2026-05-24)
+
+
+### Features
+
+* removed blacklist and updated crawling (MAPCO-10530) ([#60](https://github.com/MapColonies/store-trigger/issues/60)) ([00cc3a1](https://github.com/MapColonies/store-trigger/commit/00cc3a1613e8c7140999ba045a70a3905c782b56))
+
 ## [2.0.3](https://github.com/MapColonies/store-trigger/compare/v2.0.2...v2.0.3) (2026-01-05)
 
 
