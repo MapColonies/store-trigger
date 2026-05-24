@@ -22,7 +22,7 @@ function getProviderConfig(provider: string): ProviderConfig {
     const providerConfig: ProviderConfig = config.get(provider);
     const crawlingConfig: BaseProviderConfig = config.get('crawling');
     const fullConfig = { ...providerConfig, ...crawlingConfig };
-    
+
     return fullConfig;
   } catch (err) {
     throw new AppError(
