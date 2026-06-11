@@ -104,6 +104,24 @@ describe('jobOperationsManager', () => {
 
       //Assert
       expect(response).toBeUndefined();
+      expect(configProviderMock.streamModelPathsToQueueFile).toHaveBeenCalledWith(
+        payload.modelId,
+        payload.pathToTileset,
+        payload.tilesetFilename,
+        payload.metadata.productName
+      );
+    });
+
+    it('rejects when no paths were found in the model', async () => {
+      const jobId = faker.string.uuid();
+      queueFileHandlerMock.createQueueFile.mockResolvedValue(undefined);
+      configProviderMock.streamModelPathsToQueueFile.mockResolvedValue(0);
+      queueFileHandlerMock.readline.mockReturnValue(null);
+      queueFileHandlerMock.deleteQueueFile.mockResolvedValue(undefined);
+
+      await expect(jobOperationsManager.createModel(payload, jobId)).rejects.toThrow(
+        'No paths were found in the model, no tasks were created for the job'
+      );
     });
 
     it(`rejects if couldn't createQueueFile queue file`, async () => {

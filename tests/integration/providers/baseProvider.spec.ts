@@ -67,6 +67,7 @@ describe('Crawling tests', () => {
     const json1 = { root: { content: { uri: 'bla/c.b3dm' }, children: [{ content: { url: '2.json' } }] } };
     const json2 = {};
     const pathToTileset = '/x/y/0.json';
+    const tilesetFilename = '0.json';
 
     it('should returns all the files', async () => {
       const modelName = faker.word.sample();
@@ -74,8 +75,8 @@ describe('Crawling tests', () => {
 
       const getFileSpy = jest.spyOn(crawler, 'getFile');
 
-      // eslint-disable-next-line @typescript-eslint/require-await
       getFileSpy.mockImplementation(async (path) => {
+        await Promise.resolve();
         const normalizedPath = path.replace(/\\/g, '/').replace(/^\//, '');
 
         if (normalizedPath === 'x/y/0.json') {
@@ -91,7 +92,7 @@ describe('Crawling tests', () => {
       });
 
       await queueFileHandler.createQueueFile(modelId);
-      const total = await crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      const total = await crawler.streamModelPathsToQueueFile(modelId, pathToTileset, tilesetFilename, modelName);
 
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8').trim().split('\n');
 
@@ -99,6 +100,33 @@ describe('Crawling tests', () => {
       expect(result).toEqual(
         expect.arrayContaining([expect.stringContaining('x/y/0.json'), expect.stringContaining('x/1.json'), expect.stringContaining('x/2.json')])
       );
+      getFileSpy.mockRestore();
+    });
+
+    it('should use tilesetFilename when pathToTileset is a directory', async () => {
+      const modelName = faker.word.sample();
+      const modelId = faker.string.uuid();
+      const directoryPath = 'x/y';
+      const customTilesetFilename = 'custom-entry.json';
+
+      const getFileSpy = jest.spyOn(crawler, 'getFile').mockImplementation(async (path) => {
+        await Promise.resolve();
+        const normalizedPath = path.replace(/\\/g, '/').replace(/^\//, '');
+
+        if (normalizedPath === 'x/y/custom-entry.json') {
+          return Buffer.from(JSON.stringify(json2));
+        }
+
+        return Buffer.from('content');
+      });
+
+      await queueFileHandler.createQueueFile(modelId);
+      const total = await crawler.streamModelPathsToQueueFile(modelId, directoryPath, customTilesetFilename, modelName);
+
+      const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8').trim();
+
+      expect(total).toBe(1);
+      expect(result).toContain('x/y/custom-entry.json');
       getFileSpy.mockRestore();
     });
 
@@ -114,7 +142,7 @@ describe('Crawling tests', () => {
           .spyOn(crawler, 'getFile')
           .mockRejectedValueOnce(new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Internal error', false));
 
-        await expect(crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName)).rejects.toThrow(AppError);
+        await expect(crawler.streamModelPathsToQueueFile(modelId, pathToTileset, tilesetFilename, modelName)).rejects.toThrow(AppError);
 
         getFileSpy.mockRestore();
       });
@@ -122,7 +150,7 @@ describe('Crawling tests', () => {
       it('should throw on NOT_FOUND when ignoreNotFound is false', async () => {
         const getFileSpy = jest.spyOn(crawler, 'getFile').mockRejectedValueOnce(new AppError(StatusCodes.NOT_FOUND, 'Not Found', false));
 
-        await expect(crawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName)).rejects.toThrow(AppError);
+        await expect(crawler.streamModelPathsToQueueFile(modelId, pathToTileset, tilesetFilename, modelName)).rejects.toThrow(AppError);
 
         getFileSpy.mockRestore();
       });
@@ -131,7 +159,7 @@ describe('Crawling tests', () => {
         const ignoringCrawler = createCrawler({ ignoreNotFound: true });
         const getFileSpy = jest.spyOn(ignoringCrawler, 'getFile').mockRejectedValue(new AppError(StatusCodes.NOT_FOUND, 'Not Found', false));
 
-        await expect(ignoringCrawler.streamModelPathsToQueueFile(modelId, pathToTileset, modelName)).resolves.toBe(0);
+        await expect(ignoringCrawler.streamModelPathsToQueueFile(modelId, pathToTileset, tilesetFilename, modelName)).resolves.toBe(0);
 
         getFileSpy.mockRestore();
       });

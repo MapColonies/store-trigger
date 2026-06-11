@@ -11,7 +11,7 @@ import { NFSProvider } from '../../../src/providers/nfsProvider';
 import { SERVICES } from '../../../src/common/constants';
 import { BaseProviderConfig, NFSConfig } from '../../../src/common/interfaces';
 import { AppError } from '../../../src/common/appError';
-import { createFile, queueFileHandlerMock } from '../../helpers/mockCreator';
+import { queueFileHandlerMock } from '../../helpers/mockCreator';
 import { QueueFileHandler } from '../../../src/handlers/queueFileHandler';
 import { NFSHelper } from '../../helpers/nfsHelper';
 
@@ -81,7 +81,7 @@ describe('NFSProvider tests', () => {
       await nfsHelper.createFileOfModel(modelName, textureFile, 'data');
       await nfsHelper.createFileOfModel(modelName, childTileset, JSON.stringify({ asset: { version: '1.0' } }));
 
-      await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+      await provider.streamModelPathsToQueueFile(modelId, pathToTileset, entryFile, modelName);
 
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
 
@@ -91,13 +91,14 @@ describe('NFSProvider tests', () => {
 
     it('if model does not exists in the agreed folder, throws error', async () => {
       const pathToTileset = faker.word.sample();
+      const tilesetFilename = 'tileset.json';
       const modelName = faker.word.sample();
       const modelId = faker.string.uuid();
 
       (provider as unknown as { config: BaseProviderConfig }).config.ignoreNotFound = false;
 
       const result = async () => {
-        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, tilesetFilename, modelName);
       };
 
       await expect(result).rejects.toThrow(AppError);
@@ -114,14 +115,14 @@ describe('NFSProvider tests', () => {
       });
       provider = container.resolve(NFSProvider);
       const pathToTileset = faker.word.sample();
+      const tilesetFilename = 'tileset.json';
       const modelName = faker.word.sample();
       const modelId = faker.string.uuid();
-      const file = createFile();
-      await nfsHelper.createFileOfModel(pathToTileset, file);
+      await nfsHelper.createFileOfModel(pathToTileset, tilesetFilename, JSON.stringify({}));
       queueFileHandlerMock.writeFileNameToQueueFile.mockRejectedValue(new AppError(httpStatus.INTERNAL_SERVER_ERROR, 'queueFileHandler', false));
 
       const result = async () => {
-        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, tilesetFilename, modelName);
       };
 
       await expect(result).rejects.toThrow(AppError);

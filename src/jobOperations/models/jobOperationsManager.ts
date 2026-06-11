@@ -214,6 +214,7 @@ export class JobOperationsManager {
       const fileCount: number = await this.provider.streamModelPathsToQueueFile(
         payload.modelId,
         payload.pathToTileset,
+        payload.tilesetFilename,  
         payload.metadata.productName!
       );
       this.logger.debug({
@@ -224,6 +225,16 @@ export class JobOperationsManager {
       });
 
       const tasks = this.createTasks(this.batchSize, payload.modelId);
+      if (tasks.length === 0) {
+        this.logger.error({
+          msg: 'No tasks were created for the job since no paths were found in the model',
+          logContext,
+          modelId: payload.modelId,
+          modelName: payload.metadata.productName,
+        });
+        throw new Error('No paths were found in the model, no tasks were created for the job');
+      }
+
       this.logger.info({
         msg: 'Tasks created successfully',
         logContext,

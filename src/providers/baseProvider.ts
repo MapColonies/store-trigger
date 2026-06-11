@@ -28,12 +28,12 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
   }
 
   @withSpanAsyncV4
-  public async streamModelPathsToQueueFile(modelId: string, pathToTileset: string, modelName: string): Promise<number> {
+  public async streamModelPathsToQueueFile(modelId: string, pathToTileset: string, tilesetFilename: string, modelName: string): Promise<number> {
     const logContext = { ...this.logContext, function: this.streamModelPathsToQueueFile.name };
 
     let initialPath = pathToTileset;
     if (!initialPath.endsWith(this.crawlingExtension)) {
-      initialPath = Path.join(initialPath, `tileset${this.crawlingExtension}`);
+      initialPath = Path.join(initialPath, tilesetFilename);
 
       initialPath = initialPath.replace(/\\/g, '/').replace(/^\//, '');
     }

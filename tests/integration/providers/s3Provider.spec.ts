@@ -103,7 +103,7 @@ describe('S3Provider tests', () => {
 
       await queueFileHandler.createQueueFile(modelId);
 
-      const totalAdded = await provider.streamModelPathsToQueueFile(modelId, rootTileset, modelName);
+      const totalAdded = await provider.streamModelPathsToQueueFile(modelId, rootTileset, rootTileset, modelName);
 
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
       const filesInQueue = result
@@ -126,9 +126,10 @@ describe('S3Provider tests', () => {
       await queueFileHandler.createQueueFile(modelId);
       const modelName = faker.word.sample();
       const pathToTileset = faker.word.sample();
+      const tilesetFilename = 'tileset.json';
 
       const result = async () => {
-        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, modelName);
+        await provider.streamModelPathsToQueueFile(modelId, pathToTileset, tilesetFilename, modelName);
       };
 
       await expect(result).rejects.toThrow(AppError);
