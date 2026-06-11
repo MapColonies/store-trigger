@@ -214,7 +214,7 @@ export class JobOperationsManager {
       const fileCount: number = await this.provider.streamModelPathsToQueueFile(
         payload.modelId,
         payload.pathToTileset,
-        payload.tilesetFilename,  
+        payload.tilesetFilename,
         payload.metadata.productName!
       );
       this.logger.debug({
