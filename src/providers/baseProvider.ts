@@ -46,18 +46,47 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
     const processingQueue: string[] = [fullPath];
     let totalFilesAdded = 0;
 
+    this.logger.debug({
+      msg: 'Initialized model path crawling',
+      logContext,
+      modelId,
+      modelName,
+      initialPath: fullPath,
+      queueSize: processingQueue.length,
+    });
+
     while (processingQueue.length > 0) {
       const currentPath = processingQueue.shift();
 
       if (currentPath === undefined) {
+        this.logger.debug({
+          msg: 'Skipping undefined currentPath',
+          logContext,
+          modelId,
+          path: currentPath,
+        });
         continue;
       }
 
       if (visitedFiles.has(currentPath)) {
+        this.logger.debug({
+          msg: 'Skipping already visited file',
+          logContext,
+          modelId,
+          path: currentPath,
+        });
         continue;
       }
 
       visitedFiles.add(currentPath);
+
+      this.logger.debug({
+        msg: 'Processing model file',
+        logContext,
+        modelId,
+        path: currentPath,
+        queueRemaining: processingQueue.length,
+      });
 
       try {
         const buffer = await this.getFile(currentPath);
@@ -65,20 +94,51 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
         await this.queueFileHandler.writeFileNameToQueueFile(modelId, currentPath);
         totalFilesAdded++;
 
+        this.logger.debug({
+          msg: 'Added file to queue file',
+          logContext,
+          modelId,
+          path: currentPath,
+          totalFilesAdded,
+        });
+
         if (currentPath.endsWith(this.crawlingExtension)) {
           const nestedPaths = this.extractPathsFromJson(buffer, currentPath);
 
           for (const nestedPath of nestedPaths) {
             if (visitedFiles.has(nestedPath)) {
+              this.logger.debug({
+                msg: 'Skipping already visited nested path',
+                logContext,
+                modelId,
+                path: nestedPath,
+                sourcePath: currentPath,
+              });
               continue;
             }
 
             if (nestedPath.endsWith(this.crawlingExtension)) {
               processingQueue.push(nestedPath);
+              this.logger.debug({
+                msg: 'Queued nested JSON file for processing',
+                logContext,
+                modelId,
+                path: nestedPath,
+                sourcePath: currentPath,
+                queueSize: processingQueue.length,
+              });
             } else {
               await this.queueFileHandler.writeFileNameToQueueFile(modelId, nestedPath);
               visitedFiles.add(nestedPath);
               totalFilesAdded++;
+              this.logger.debug({
+                msg: 'Added nested file to queue file',
+                logContext,
+                modelId,
+                path: nestedPath,
+                sourcePath: currentPath,
+                totalFilesAdded,
+              });
             }
           }
         }
@@ -113,18 +173,45 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
   }
 
   private extractPathsFromJson(buffer: Buffer, currentPath: string): string[] {
+    const logContext = { ...this.logContext, function: this.extractPathsFromJson.name };
+
+    this.logger.debug({
+      msg: 'Extracting paths from JSON content',
+      logContext: logContext,
+      path: currentPath,
+      nestedJsonPath: this.config.nestedJsonPath,
+    });
+
     try {
       const fileContent = buffer.toString();
       const json = JSON.parse(fileContent) as object;
       const nestedJsonPath = this.config.nestedJsonPath;
       const results = jsonpath.query(json, nestedJsonPath) as string[];
 
+      this.logger.debug({
+        msg: 'Found raw nested path references in JSON',
+        logContext: logContext,
+        path: currentPath,
+        rawPathsCount: results.length,
+        rawPaths: results,
+      });
+
       const dirname = Path.dirname(currentPath);
 
-      return results.map((child) => {
+      const resolvedPaths = results.map((child) => {
         const joinedPath = dirname === '.' ? child : Path.join(dirname, child);
         return joinedPath.replace(/\\/g, '/').replace(/^\//, '');
       });
+
+      this.logger.debug({
+        msg: 'Resolved nested paths relative to current file',
+        logContext: logContext,
+        path: currentPath,
+        resolvedPathsCount: resolvedPaths.length,
+        resolvedPaths,
+      });
+
+      return resolvedPaths;
     } catch (err) {
       this.logger.error({ msg: 'Failed to parse JSON', path: currentPath, err });
       return [];
