@@ -31,23 +31,20 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
   public async streamModelPathsToQueueFile(modelId: string, pathToTileset: string, tilesetFilename: string, modelName: string): Promise<number> {
     const logContext = { ...this.logContext, function: this.streamModelPathsToQueueFile.name };
 
-    let initialPath = pathToTileset;
-    if (!initialPath.endsWith(this.crawlingExtension)) {
-      initialPath = Path.join(initialPath, tilesetFilename);
-
-      initialPath = initialPath.replace(/\\/g, '/').replace(/^\//, '');
-    }
+    let fullPath: string = '';
+    fullPath = Path.join(pathToTileset, tilesetFilename);
+    fullPath = fullPath.replace(/\\/g, '/').replace(/^\//, '');
 
     this.logger.info({
       msg: 'Started streaming model paths to queue file',
       logContext,
       modelName,
       modelId,
-      pathToTileset: initialPath,
+      pathToTileset: fullPath,
     });
 
     const visitedFiles = new Set<string>();
-    const processingQueue: string[] = [initialPath];
+    const processingQueue: string[] = [fullPath];
     let totalFilesAdded = 0;
 
     while (processingQueue.length > 0) {

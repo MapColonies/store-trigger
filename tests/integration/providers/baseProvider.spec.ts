@@ -66,7 +66,7 @@ describe('Crawling tests', () => {
     };
     const json1 = { root: { content: { uri: 'bla/c.b3dm' }, children: [{ content: { url: '2.json' } }] } };
     const json2 = {};
-    const pathToTileset = '/x/y/0.json';
+    const pathToTileset = 'x/y';
     const tilesetFilename = '0.json';
 
     it('should returns all the files', async () => {
@@ -100,33 +100,6 @@ describe('Crawling tests', () => {
       expect(result).toEqual(
         expect.arrayContaining([expect.stringContaining('x/y/0.json'), expect.stringContaining('x/1.json'), expect.stringContaining('x/2.json')])
       );
-      getFileSpy.mockRestore();
-    });
-
-    it('should use tilesetFilename when pathToTileset is a directory', async () => {
-      const modelName = faker.word.sample();
-      const modelId = faker.string.uuid();
-      const directoryPath = 'x/y';
-      const customTilesetFilename = 'custom-entry.json';
-
-      const getFileSpy = jest.spyOn(crawler, 'getFile').mockImplementation(async (path) => {
-        await Promise.resolve();
-        const normalizedPath = path.replace(/\\/g, '/').replace(/^\//, '');
-
-        if (normalizedPath === 'x/y/custom-entry.json') {
-          return Buffer.from(JSON.stringify(json2));
-        }
-
-        return Buffer.from('content');
-      });
-
-      await queueFileHandler.createQueueFile(modelId);
-      const total = await crawler.streamModelPathsToQueueFile(modelId, directoryPath, customTilesetFilename, modelName);
-
-      const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8').trim();
-
-      expect(total).toBe(1);
-      expect(result).toContain('x/y/custom-entry.json');
       getFileSpy.mockRestore();
     });
 

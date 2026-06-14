@@ -103,7 +103,7 @@ describe('S3Provider tests', () => {
 
       await queueFileHandler.createQueueFile(modelId);
 
-      const totalAdded = await provider.streamModelPathsToQueueFile(modelId, rootTileset, rootTileset, modelName);
+      const totalAdded = await provider.streamModelPathsToQueueFile(modelId, '', rootTileset, modelName);
 
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
       const filesInQueue = result

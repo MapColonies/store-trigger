@@ -62,7 +62,8 @@ describe('NFSProvider tests', () => {
       const modelId = faker.string.uuid();
       const modelName = 'interconnect';
       const entryFile = 'tileset.json';
-      const pathToTileset = `${modelName}/${entryFile}`;
+      const pathToTileset = modelName;
+      const tilesetPath = `${modelName}/${entryFile}`;
 
       await queueFileHandler.createQueueFile(modelId);
 
@@ -76,7 +77,7 @@ describe('NFSProvider tests', () => {
         },
       });
 
-      await nfsHelper.createFileOfModel('', pathToTileset, tilesetContent);
+      await nfsHelper.createFileOfModel('', tilesetPath, tilesetContent);
 
       await nfsHelper.createFileOfModel(modelName, textureFile, 'data');
       await nfsHelper.createFileOfModel(modelName, childTileset, JSON.stringify({ asset: { version: '1.0' } }));
@@ -85,7 +86,7 @@ describe('NFSProvider tests', () => {
 
       const result = fs.readFileSync(`${queueFilePath}/${modelId}`, 'utf-8');
 
-      expect(result).toContain(pathToTileset);
+      expect(result).toContain(tilesetPath);
       await queueFileHandler.deleteQueueFile(modelId);
     });
 
