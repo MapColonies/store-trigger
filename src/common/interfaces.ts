@@ -30,7 +30,7 @@ export interface DeletePayload {
 }
 
 export interface Provider {
-  streamModelPathsToQueueFile: (modelId: string, pathToTileset: string, productName: string) => Promise<number>;
+  streamModelPathsToQueueFile: (modelId: string, pathToTileset: string, tilesetFilename: string, productName: string) => Promise<number>;
   getFile: (filePath: string) => Promise<Buffer>;
 }
 
