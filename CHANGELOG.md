@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.1](https://github.com/MapColonies/store-trigger/compare/v2.1.0...v2.1.1) (2026-06-14)
+
+
+### Bug Fixes
+
+* fixed tilesetFilename added to the path (MAPCO-10817) ([#63](https://github.com/MapColonies/store-trigger/issues/63)) ([8f14997](https://github.com/MapColonies/store-trigger/commit/8f149978ea57d2f01b9900f86c48205fc4a766ed))
+
 ## [2.1.0](https://github.com/MapColonies/store-trigger/compare/v2.0.3...v2.1.0) (2026-05-24)
 
 
