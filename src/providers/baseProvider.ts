@@ -46,15 +46,6 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
     const processingQueue: string[] = [fullPath];
     let totalFilesAdded = 0;
 
-    this.logger.debug({
-      msg: 'Initialized model path crawling',
-      logContext,
-      modelId,
-      modelName,
-      initialPath: fullPath,
-      queueSize: processingQueue.length,
-    });
-
     while (processingQueue.length > 0) {
       const currentPath = processingQueue.shift();
 
@@ -193,7 +184,6 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
         logContext: logContext,
         path: currentPath,
         rawPathsCount: results.length,
-        rawPaths: results,
       });
 
       const dirname = Path.dirname(currentPath);
@@ -208,7 +198,6 @@ export abstract class BaseProvider<T extends BaseProviderConfig> implements Prov
         logContext: logContext,
         path: currentPath,
         resolvedPathsCount: resolvedPaths.length,
-        resolvedPaths,
       });
 
       return resolvedPaths;
