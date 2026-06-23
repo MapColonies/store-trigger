@@ -36,7 +36,7 @@ helm.sh/chart: {{ include "store-trigger.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{ include "mc-labels-and-annotations.labels" . }}
+{{ include "mclabels.labels" . }}
 {{- end }}
 
 {{/*
@@ -45,7 +45,7 @@ Selector labels
 {{- define "store-trigger.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "store-trigger.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-{{ include "mc-labels-and-annotations.selectorLabels" . }}
+{{ include "mclabels.selectorLabels" . }}
 {{- end }}
 
 {{/*
