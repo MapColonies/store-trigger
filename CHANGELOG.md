@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/MapColonies/store-trigger/compare/v2.0.3...v2.1.0) (2026-06-23)
+
+
+### Features
+
+* added new type productSubType (MAPCO-10805) ([#65](https://github.com/MapColonies/store-trigger/issues/65)) ([125ac24](https://github.com/MapColonies/store-trigger/commit/125ac2430cf39b702a100fffc780d96f01d722a9))
+
+
+### Helm Changes
+
+* upgraded mc-labels (MAPCO-7126) ([#66](https://github.com/MapColonies/store-trigger/issues/66)) ([db4e603](https://github.com/MapColonies/store-trigger/commit/db4e6033efe658b5045ac83cd3ceaf6eb9ca7300))
+
 ## [2.0.3](https://github.com/MapColonies/store-trigger/compare/v2.0.2...v2.0.3) (2026-01-05)
 
 
