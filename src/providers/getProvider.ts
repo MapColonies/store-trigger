@@ -26,5 +26,3 @@ function getProviderConfig(provider: string): ProviderConfig {
 }
 
 export { getProvider, getProviderConfig };
-
-// TODO: DELETE_JOB_TYPE
