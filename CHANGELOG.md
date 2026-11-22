@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.1](https://github.com/MapColonies/store-trigger/compare/v2.2.0...v2.2.1) (2026-11-22)
+
+
+### Helm Changes
+
+* add mclabels to pod template and set cpu limit to 4x request (MAPCO-11865, MAPCO-11866) ([#68](https://github.com/MapColonies/store-trigger/issues/68)) ([68c0fac](https://github.com/MapColonies/store-trigger/commit/68c0facdc08da81971ffdccc7e8c46fed17f767b))
+
 ## [2.2.0](https://github.com/MapColonies/store-trigger/compare/v2.0.3...v2.2.0) (2026-06-23)
 
 
